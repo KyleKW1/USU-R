@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retreat Assessment Data Analyzer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .response-count {
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .action-bar {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        button, .file-button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        button:hover, .file-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-info {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+            margin-left: auto;
+        }
+        
+        .file-button {
+            background: #8b5cf6;
+            color: white;
+            position: relative;
+        }
+        
+        .file-button input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+            left: 0;
+            top: 0;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 25px;
+        }
+        
+        .card h2 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .insight-card {
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .insight-card.purple {
+            background: #f3f4ff;
+        }
+        
+        .insight-card.orange {
+            background: #fff7ed;
+        }
+        
+        .insight-card.blue {
+            background: #eff6ff;
+        }
+        
+        .insight-card h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .insight-card.purple h3 { color: #667eea; }
+        .insight-card.orange h3 { color: #f59e0b; }
+        .insight-card.blue h3 { color: #3b82f6; }
+        
+        .insight-value {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .insight-card.purple .insight-value { color: #667eea; }
+        .insight-card.orange .insight-value { color: #f59e0b; }
+        .insight-card.blue .insight-value { color: #3b82f6; }
+        
+        .insight-label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .response-list {
+            display: none;
+        }
+        
+        .response-item {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 25px;
+            margin-bottom: 15px;
+        }
+        
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        
+        .response-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .response-date {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .response-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .summary-item {
+            padding: 10px;
+            background: #f9fafb;
+            border-radius: 6px;
+        }
+        
+        .summary-label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .summary-value {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .response-details {
+            display: none;
+            border-top: 2px solid #f0f0f0;
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+        
+        .detail-section {
+            margin-bottom: 15px;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .detail-text {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .empty-state {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 60px;
+            text-align: center;
+        }
+        
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: #f0f0f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: #ccc;
+        }
+        
+        .empty-title {
+            font-size: 24px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .empty-text {
+            color: #999;
+        }
+        
+        .wide-card {
+            grid-column: 1 / -1;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button, .file-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div>
+                    <h1>Retreat Assessment Analyzer</h1>
+                    <p>UTech Students' Union Council Data Dashboard</p>
+                </div>
+                <div>
+                    <div class="response-count" id="responseCount">0</div>
+                    <p style="text-align: center; color: #666;">Responses</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="action-bar">
+            <div class="button-group">
+                <button class="btn-primary" id="btnDashboard">📊 Dashboard</button>
+                <button class="btn-secondary" id="btnResponses">📝 Individual Responses</button>
+                <label class="file-button">
+                    📤 Import Data
+                    <input type="file" id="fileInput" accept=".json">
+                </label>
+                <button class="btn-success" id="btnExport">💾 Export JSON</button>
+                <button class="btn-info" id="btnReport">📄 Export Report</button>
+                <button class="btn-danger" id="btnClear">🗑️ Clear All Data</button>
+            </div>
+        </div>
+
+        <!-- Dashboard View -->
+        <div id="dashboardView" class="dashboard">
+            <!-- Satisfaction Chart -->
+            <div class="card">
+                <h2>Overall Satisfaction</h2>
+                <div class="chart-container">
+                    <canvas id="satisfactionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Tenure Chart -->
+            <div class="card">
+                <h2>Council Tenure</h2>
+                <div class="chart-container">
+                    <canvas id="tenureChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Financial Challenges -->
+            <div class="card">
+                <h2>Financial Challenges</h2>
+                <div class="chart-container">
+                    <canvas id="financialChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Academic Challenges -->
+            <div class="card">
+                <h2>Academic Challenges</h2>
+                <div class="chart-container">
+                    <canvas id="academicChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Support Gaps -->
+            <div class="card wide-card">
+                <h2>Areas Lacking Support</h2>
+                <div class="chart-container">
+                    <canvas id="supportChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Retreat Priorities -->
+            <div class="card wide-card">
+                <h2>Retreat Priorities</h2>
+                <div class="chart-container">
+                    <canvas id="prioritiesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Key Insights -->
+            <div class="card wide-card">
+                <h2>⚡ Key Insights</h2>
+                <div class="insights-grid">
+                    <div class="insight-card purple">
+                        <h3>Average Satisfaction</h3>
+                        <div class="insight-value" id="avgSatisfaction">0</div>
+                        <div class="insight-label">out of 5.0</div>
+                    </div>
+                    <div class="insight-card orange">
+                        <h3>Financial Concerns</h3>
+                        <div class="insight-value" id="financialPercent">0%</div>
+                        <div class="insight-label">of respondents</div>
+                    </div>
+                    <div class="insight-card blue">
+                        <h3>Academic Struggles</h3>
+                        <div class="insight-value" id="academicPercent">0%</div>
+                        <div class="insight-label">of respondents</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Responses View -->
+        <div id="responsesView" class="response-list">
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">📋</div>
+                <h3 class="empty-title">No Responses Yet</h3>
+                <p class="empty-text">Import data or wait for form submissions to appear here</p>
+            </div>
+            <div id="responsesList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let responses = [];
+        let charts = {};
+        let currentView = 'dashboard';
+
+        // Load data on page load
+        window.addEventListener('load', () => {
+            loadResponses();
+            updateUI();
+        });
+
+        // Load responses from storage
+        async function loadResponses() {
+            try {
+                const result = await window.storage.list('retreat_response:');
+                if (result && result.keys) {
+                    responses = [];
+                    for (const key of result.keys) {
+                        const data = await window.storage.get(key);
+                        if (data && data.value) {
+                            responses.push(JSON.parse(data.value));
+                        }
+                    }
+                    responses.sort((a, b) => b.id - a.id);
+                }
+            } catch (error) {
+                console.log('No existing responses found');
+                responses = [];
+            }
+        }
+
+        // Save response to storage
+        async function saveResponse(responseData) {
+            const timestamp = Date.now();
+            const key = `retreat_response:${timestamp}`;
+            const dataToStore = {
+                ...responseData,
+                id: timestamp,
+                submittedAt: new Date().toISOString()
+            };
+            
+            try {
+                await window.storage.set(key, JSON.stringify(dataToStore));
+                responses.unshift(dataToStore);
+                updateUI();
+                return true;
+            } catch (error) {
+                console.error('Error saving response:', error);
+                return false;
+            }
+        }
+
+        // Update UI
+        function updateUI() {
+            document.getElementById('responseCount').textContent = responses.length;
+            
+            if (currentView === 'dashboard') {
+                updateDashboard();
+            } else {
+                updateResponsesList();
+            }
+        }
+
+        // Update dashboard with charts
+        function updateDashboard() {
+            updateSatisfactionChart();
+            updateTenureChart();
+            updateFinancialChart();
+            updateAcademicChart();
+            updateSupportChart();
+            updatePrioritiesChart();
+            updateInsights();
+        }
+
+        // Chart: Satisfaction
+        function updateSatisfactionChart() {
+            const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+            responses.forEach(r => {
+                if (r.satisfaction) counts[r.satisfaction]++;
+            });
+
+            const ctx = document.getElementById('satisfactionChart').getContext('2d');
+            if (charts.satisfaction) charts.satisfaction.destroy();
+            
+            charts.satisfaction = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Very Dissatisfied', 'Dissatisfied', 'Neutral', 'Satisfied', 'Very Satisfied'],
+                    datasets: [{
+                        label: 'Responses',
+                        data: [counts[1], counts[2], counts[3], counts[4], counts[5]],
+                        backgroundColor: '#667eea'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chart: Tenure
+        function updateTenureChart() {
+            const counts = {};
+            responses.forEach(r => {
+                if (r.tenure) {
+                    counts[r.tenure] = (counts[r.tenure] || 0) + 1;
+                }
+            });
+
+            const labels = Object.keys(counts).map(k => 
+                k.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+            );
+            const data = Object.values(counts);
+
+            const ctx = document.getElementById('tenureChart').getContext('2d');
+            if (charts.tenure) charts.tenure.destroy();
+            
+            charts.tenure = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        // Chart: Financial Challenges
+        function updateFinancialChart() {
+            let yes = 0, no = 0;
+            responses.forEach(r => {
+                if (r.financialChallenges === 'yes') yes++;
+                if (r.financialChallenges === 'no') no++;
+            });
+
+            const ctx = document.getElementById('financialChart').getContext('2d');
+            if (charts.financial) charts.financial.destroy();
+            
+            charts.financial = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Yes', 'No'],
+                    datasets: [{
+                        data: [yes, no],
+                        backgroundColor: ['#f093fb', '#43e97b']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        // Chart: Academic Challenges
+        function updateAcademicChart() {
+            let yes = 0, no = 0;
+            responses.forEach(r => {
+                if (r.academicChallenges === 'yes') yes++;
+                if (r.academicChallenges === 'no') no++;
+            });
+
+            const ctx = document.getElementById('academicChart').getContext('2d');
+            if (charts.academic) charts.academic.destroy();
+            
+            charts.academic = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Yes', 'No'],
+                    datasets: [{
+                        data: [yes, no],
+                        backgroundColor: ['#fa709a', '#4facfe']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        // Chart: Support Gaps
+        function updateSupportChart() {
+            const counts = {};
+            responses.forEach(r => {
+                if (r.lackSupport) {
+                    const supports = Array.isArray(r.lackSupport) ? r.lackSupport : [r.lackSupport];
+                    supports.forEach(s => {
+                        counts[s] = (counts[s] || 0) + 1;
+                    });
+                }
+            });
+
+            const sorted = Object.entries(counts)
+                .map(([key, value]) => ({
+                    name: key.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                    count: value
+                }))
+                .sort((a, b) => b.count - a.count);
+
+            const ctx = document.getElementById('supportChart').getContext('2d');
+            if (charts.support) charts.support.destroy();
+            
+            charts.support = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(s => s.name),
+                    datasets: [{
+                        label: 'Mentions',
+                        data: sorted.map(s => s.count),
+                        backgroundColor: '#764ba2'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chart: Retreat Priorities
+        function updatePrioritiesChart() {
+            const counts = {};
+            responses.forEach(r => {
+                if (r.retreatPriorities) {
+                    const priorities = Array.isArray(r.retreatPriorities) ? r.retreatPriorities : [r.retreatPriorities];
+                    priorities.forEach(p => {
+                        counts[p] = (counts[p] || 0) + 1;
+                    });
+                }
+            });
+
+            const sorted = Object.entries(counts)
+                .map(([key, value]) => ({
+                    name: key.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                    count: value
+                }))
+                .sort((a, b) => b.count - a.count);
+
+            const ctx = document.getElementById('prioritiesChart').getContext('2d');
+            if (charts.priorities) charts.priorities.destroy();
+            
+            charts.priorities = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(s => s.name),
+                    datasets: [{
+                        label: 'Votes',
+                        data: sorted.map(s => s.count),
+                        backgroundColor: '#667eea'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update insights
+        function updateInsights() {
+            if (responses.length > 0) {
+                // Average satisfaction
+                const avgSat = responses.reduce((sum, r) => sum + (parseInt(r.satisfaction) || 0), 0) / responses.length;
+                document.getElementById('avgSatisfaction').textContent = avgSat.toFixed(1);
+
+                // Financial concerns
+                const finPercent = (responses.filter(r => r.financialChallenges === 'yes').length / responses.length) * 100;
+                document.getElementById('financialPercent').textContent = Math.round(finPercent) + '%';
+
+                // Academic struggles
+                const acadPercent = (responses.filter(r => r.academicChallenges === 'yes').length / responses.length) * 100;
+                document.getElementById('academicPercent').textContent = Math.round(acadPercent) + '%';
+            } else {
+                document.getElementById('avgSatisfaction').textContent = 'N/A';
+                document.getElementById('financialPercent').textContent = '0%';
+                document.getElementById('academicPercent').textContent = '0%';
+            }
+        }
+
+        // Update responses list
+        function updateResponsesList() {
+            const list = document.getElementById('responsesList');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (responses.length === 0) {
+                emptyState.style.display = 'block';
+                list.innerHTML = '';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            list.innerHTML = '';
+
+            responses.forEach((response, index) => {
+                const item = document.createElement('div');
+                item.className = 'response-item';
+                item.innerHTML = `
+                    <div class="response-header">
+                        <div>
+                            <div class="response-title">Response #${responses.length - index}</div>
+                            <div class="response-date">${response.submittedAt ? new Date(response.submittedAt).toLocaleString() : 'Unknown date'}</div>
+                        </div>
+                        <button class="btn-primary" onclick="toggleDetails(${response.id})">View Details</button>
+                    </div>
+                    <div class="response-summary">
+                        <div class="summary-item">
+                            <div class="summary-label">Position</div>
+                            <div class="summary-value">${response.councilPosition || 'Not specified'}</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Tenure</div>
+                            <div class="summary-value">${response.tenure || 'N/A'}</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Satisfaction</div>
+                            <div class="summary-value">${response.satisfaction ? response.satisfaction + '/5' : 'N/A'}</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Financial Issues</div>
+                            <div class="summary-value">${response.financialChallenges || 'N/A'}</div>
+                        </div>
+                    </div>
+                    <div class="response-details" id="details-${response.id}">
+                        ${response.roleDislikes ? `
+                            <div class="detail-section">
+                                <div class="detail-label">Role Challenges:</div>
+                                <div class="detail-text">${response.roleDislikes}</div>
+                            </div>
+                        ` : ''}
+                        ${response.achievements ? `
+                            <div class="detail-section">
+                                <div class="detail-label">Achievements:</div>
+                                <div class="detail-text">${response.achievements}</div>
+                            </div>
+                        ` : ''}
+                        ${response.weaknesses ? `
+                            <div class="detail-section">
+                                <div class="detail-label">Areas for Improvement:</div>
+                                <div class="detail-text">${response.weaknesses}</div>
+                            </div>
+                        ` : ''}
+                        ${response.retreatGoals ? `
+                            <div class="detail-section">
+                                <div class="detail-label">Retreat Goals:</div>
+                                <div class="detail-text">${response.retreatGoals}</div>
+                            </div>
+                        ` : ''}
+                        ${response.trainingTopics ? `
+                            <div class="detail-section">
+                                <div class="detail-label">Training Topics:</div>
+                                <div class="detail-text">${response.trainingTopics}</div>
+                            </div>
+                        ` : ''}
+                        ${response.executiveConcerns ? `
+                            <div class="detail-section">
+                                <div class="detail-label">Executive Concerns:</div>
+                                <div class="detail-text">${response.executiveConcerns}</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // Toggle details
+        function toggleDetails(id) {
+            const details = document.getElementById(`details-${id}`);
+            if (details.style.display === 'block') {
+                details.style.display = 'none';
+            } else {
+                details.style.display = 'block';
+            }
+        }
+
+        // Switch views
+        function switchView(view) {
+            currentView = view;
+            const dashboardView = document.getElementById('dashboardView');
+            const responsesView = document.getElementById('responsesView');
+            const btnDashboard = document.getElementById('btnDashboard');
+            const btnResponses = document.getElementById('btnResponses');
+
+            if (view === 'dashboard') {
+                dashboardView.style.display = 'grid';
+                responsesView.style.display = 'none';
+                btnDashboard.className = 'btn-primary';
+                btnResponses.className = 'btn-secondary';
+                updateDashboard();
+            } else {
+                dashboardView.style.display = 'none';
+                responsesView.style.display = 'block';
+                btnDashboard.className = 'btn-secondary';
+                btnResponses.className = 'btn-primary';
+                updateResponsesList();
+            }
+        }
+
+        // Export data
+        function exportData() {
+            const dataStr = JSON.stringify(responses, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `retreat_responses_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+        }
+
+        // Export report
+        function exportReport() {
+            const report = [];
+            report.push('='.repeat(80));
+            report.push('UTech Students\' Union Council Pre-Retreat Assessment Report');
+            report.push('Generated: ' + new Date().toLocaleString());
+            report.push('='.repeat(80));
+            report.push('');
+            report.push(`Total Responses: ${responses.length}`);
+            report.push('');
+            
+            if (responses.length > 0) {
+                // Satisfaction
+                report.push('SATISFACTION ANALYSIS');
+                report.push('-'.repeat(80));
+                const avgSat = responses.reduce((sum, r) => sum + (parseInt(r.satisfaction) || 0), 0) / responses.length;
+                report.push(`Average Satisfaction: ${avgSat.toFixed(2)} out of 5.0`);
+                report.push('');
+                
+                // Financial
+                report.push('FINANCIAL CHALLENGES');
+                report.push('-'.repeat(80));
+                const finYes = responses.filter(r => r.financialChallenges === 'yes').length;
+                report.push(`Yes: ${finYes} (${((finYes/responses.length)*100).toFixed(1)}%)`);
+                const finNo = responses.filter(r => r.financialChallenges === 'no').length;
+                report.push(`No: ${finNo} (${((finNo/responses.length)*100).toFixed(1)}%)`);
+                report.push('');
+                
+                // Academic
+                report.push('ACADEMIC CHALLENGES');
+                report.push('-'.repeat(80));
+                const acadYes = responses.filter(r => r.academicChallenges === 'yes').length;
+                report.push(`Yes: ${acadYes} (${((acadYes/responses.length)*100).toFixed(1)}%)`);
+                const acadNo = responses.filter(r => r.academicChallenges === 'no').length;
+                report.push(`No: ${acadNo} (${((acadNo/responses.length)*100).toFixed(1)}%)`);
+            }
+            
+            const reportText = report.join('\n');
+            const dataBlob = new Blob([reportText], { type: 'text/plain' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `retreat_analysis_report_${new Date().toISOString().split('T')[0]}.txt`;
+            link.click();
+        }
+
+        // Import data
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async function(event) {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        if (Array.isArray(data)) {
+                            for (const response of data) {
+                                await saveResponse(response);
+                            }
+                            alert(`Imported ${data.length} responses successfully!`);
+                        } else {
+                            await saveResponse(data);
+                            alert('Imported 1 response successfully!');
+                        }
+                    } catch (error) {
+                        alert('Invalid JSON file format');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Clear all data
+        document.getElementById('btnClear').addEventListener('click', async function() {
+            if (confirm('Are you sure you want to delete all responses? This cannot be undone.')) {
+                try {
+                    const result = await window.storage.list('retreat_response:');
+                    if (result && result.keys) {
+                        for (const key of result.keys) {
+                            await window.storage.delete(key);
+                        }
+                    }
+                    responses = [];
+                    updateUI();
+                    alert('All data cleared successfully');
+                } catch (error) {
+                    console.error('Error clearing data:', error);
+                    alert('Error clearing data');
+                }
+            }
+        });
+
+        // Event listeners
+        document.getElementById('btnDashboard').addEventListener('click', () => switchView('dashboard'));
+        document.getElementById('btnResponses').addEventListener('click', () => switchView('responses'));
+        document.getElementById('btnExport').addEventListener('click', exportData);
+        document.getElementById('btnReport').addEventListener('click', exportReport);
+    </script>
+</body>
+</html>

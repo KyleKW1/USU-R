@@ -594,9 +594,15 @@
             
             try {
                 await window.storage.set(key, JSON.stringify(responseData));
-                alert('Thank you! Your response has been recorded.');
+                alert('Thank you for completing the assessment! Your responses have been recorded.\n\nView all responses at: retreat_analyzer.html');
                 form.reset();
+                // Reset conditional sections
+                financialDetailsSection.style.display = 'none';
+                financialStrugglesSection.style.display = 'none';
+                academicDetailsSection.style.display = 'none';
+                academicStrugglesSection.style.display = 'none';
             } catch (error) {
+                console.error('Error saving response:', error);
                 alert('Error saving response. Please try again.');
             }
         });

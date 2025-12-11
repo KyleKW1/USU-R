@@ -565,7 +565,7 @@
             });
         });
         
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const formData = new FormData(form);
@@ -583,17 +583,20 @@
                 }
             }
             
-            console.log('Form Data:', data);
+            // Save to storage
+            const timestamp = Date.now();
+            const key = `retreat_response:${timestamp}`;
+            const responseData = {
+                ...data,
+                id: timestamp,
+                submittedAt: new Date().toISOString()
+            };
             
-            alert('Thank you for completing the assessment! Your responses have been recorded.\n\nNote: In a production environment, this data would be securely transmitted to your retreat planning team.');
-            
-            form.reset();
-            // Reset visibility of conditional sections
-            financialDetailsSection.style.display = 'none';
-            financialStrugglesSection.style.display = 'none';
-            academicDetailsSection.style.display = 'none';
-            academicStrugglesSection.style.display = 'none';
+            try {
+                await window.storage.set(key, JSON.stringify(responseData));
+                alert('Thank you! Your response has been recorded.');
+                form.reset();
+            } catch (error) {
+                alert('Error saving response. Please try again.');
+            }
         });
-    </script>
-</body>
-</html>

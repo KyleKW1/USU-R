@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retreat Assessment Data Analyzer</title>
+    <title>Retreat Assessment Data Analyzer - Login</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * {
@@ -19,7 +19,112 @@
             min-height: 100vh;
         }
         
-        .container {
+        /* Login Screen Styles */
+        .login-container {
+            max-width: 450px;
+            margin: 100px auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 50px 40px;
+            text-align: center;
+        }
+        
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        
+        .login-title {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .login-subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .login-form {
+            text-align: left;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .login-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .info-box {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #555;
+            border-left: 4px solid #667eea;
+        }
+        
+        /* Main App Styles */
+        .app-container {
+            display: none;
             max-width: 1400px;
             margin: 0 auto;
         }
@@ -55,6 +160,36 @@
             font-size: 48px;
             font-weight: bold;
             color: #667eea;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #f8f9ff;
+            padding: 12px 20px;
+            border-radius: 8px;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .logout-btn {
+            padding: 8px 16px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: #dc2626;
         }
         
         .action-bar {
@@ -335,21 +470,65 @@
             button, .file-button {
                 width: 100%;
             }
+            
+            .login-container {
+                margin: 50px auto;
+                padding: 40px 30px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Login Screen -->
+    <div class="login-container" id="loginScreen">
+        <div class="login-logo">🔒</div>
+        <h1 class="login-title">Authorized Access Only</h1>
+        <p class="login-subtitle">Retreat Assessment Data Analyzer</p>
+        
+        <div class="error-message" id="errorMessage">
+            Incorrect username or password. Please try again.
+        </div>
+        
+        <form class="login-form" id="loginForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="login-button">🔓 Login to Dashboard</button>
+        </form>
+        
+        <div class="info-box">
+            <strong>🔐 Default Credentials (Change these!):</strong><br>
+            Username: <code>admin</code><br>
+            Password: <code>retreat2024</code>
+        </div>
+    </div>
+
+    <!-- Main Application (Hidden until login) -->
+    <div class="app-container" id="appContainer">
         <!-- Header -->
         <div class="header">
             <div class="header-content">
                 <div>
+                    <div style="margin-bottom: 10px;">
+                        <a href="index.html" style="color: #667eea; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
+                            ← Back to Assessment Form
+                        </a>
+                    </div>
                     <h1>Retreat Assessment Analyzer</h1>
                     <p>UTech Students' Union Council Data Dashboard</p>
                 </div>
-                <div>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
                     <div class="response-count" id="responseCount">0</div>
                     <p style="text-align: center; color: #666;">Responses</p>
+                    <div class="user-info">
+                        <span class="user-name" id="currentUser">Admin</span>
+                        <button class="logout-btn" id="logoutBtn">Logout</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -454,16 +633,75 @@
     </div>
 
     <script>
+        // Authentication System
+        const users = {
+            'admin': 'retreat2024',
+            // Add more users here: 'username': 'password'
+        };
+
+        let currentUser = null;
+        let isAuthenticated = false;
+
+        // Check if already logged in
+        window.addEventListener('load', () => {
+            const savedUser = sessionStorage.getItem('authUser');
+            const authTime = sessionStorage.getItem('authTime');
+            
+            // Session expires after 2 hours
+            if (savedUser && authTime && (Date.now() - parseInt(authTime)) < 7200000) {
+                isAuthenticated = true;
+                currentUser = savedUser;
+                showApp();
+            }
+        });
+
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (users[username] && users[username] === password) {
+                isAuthenticated = true;
+                currentUser = username;
+                sessionStorage.setItem('authUser', username);
+                sessionStorage.setItem('authTime', Date.now().toString());
+                showApp();
+            } else {
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('password').value = '';
+            }
+        });
+
+        // Logout handler
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            isAuthenticated = false;
+            currentUser = null;
+            sessionStorage.removeItem('authUser');
+            sessionStorage.removeItem('authTime');
+            hideApp();
+        });
+
+        function showApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+            document.getElementById('currentUser').textContent = currentUser;
+            loadResponses();
+            updateUI();
+        }
+
+        function hideApp() {
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('appContainer').style.display = 'none';
+            document.getElementById('loginForm').reset();
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
         // Data storage
         let responses = [];
         let charts = {};
         let currentView = 'dashboard';
-
-        // Load data on page load
-        window.addEventListener('load', () => {
-            loadResponses();
-            updateUI();
-        });
 
         // Load responses from storage
         async function loadResponses() {
@@ -700,292 +938,4 @@
                 if (r.retreatPriorities) {
                     const priorities = Array.isArray(r.retreatPriorities) ? r.retreatPriorities : [r.retreatPriorities];
                     priorities.forEach(p => {
-                        counts[p] = (counts[p] || 0) + 1;
-                    });
-                }
-            });
-
-            const sorted = Object.entries(counts)
-                .map(([key, value]) => ({
-                    name: key.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-                    count: value
-                }))
-                .sort((a, b) => b.count - a.count);
-
-            const ctx = document.getElementById('prioritiesChart').getContext('2d');
-            if (charts.priorities) charts.priorities.destroy();
-            
-            charts.priorities = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: sorted.map(s => s.name),
-                    datasets: [{
-                        label: 'Votes',
-                        data: sorted.map(s => s.count),
-                        backgroundColor: '#667eea'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    indexAxis: 'y',
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            ticks: { stepSize: 1 }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Update insights
-        function updateInsights() {
-            if (responses.length > 0) {
-                // Average satisfaction
-                const avgSat = responses.reduce((sum, r) => sum + (parseInt(r.satisfaction) || 0), 0) / responses.length;
-                document.getElementById('avgSatisfaction').textContent = avgSat.toFixed(1);
-
-                // Financial concerns
-                const finPercent = (responses.filter(r => r.financialChallenges === 'yes').length / responses.length) * 100;
-                document.getElementById('financialPercent').textContent = Math.round(finPercent) + '%';
-
-                // Academic struggles
-                const acadPercent = (responses.filter(r => r.academicChallenges === 'yes').length / responses.length) * 100;
-                document.getElementById('academicPercent').textContent = Math.round(acadPercent) + '%';
-            } else {
-                document.getElementById('avgSatisfaction').textContent = 'N/A';
-                document.getElementById('financialPercent').textContent = '0%';
-                document.getElementById('academicPercent').textContent = '0%';
-            }
-        }
-
-        // Update responses list
-        function updateResponsesList() {
-            const list = document.getElementById('responsesList');
-            const emptyState = document.getElementById('emptyState');
-            
-            if (responses.length === 0) {
-                emptyState.style.display = 'block';
-                list.innerHTML = '';
-                return;
-            }
-
-            emptyState.style.display = 'none';
-            list.innerHTML = '';
-
-            responses.forEach((response, index) => {
-                const item = document.createElement('div');
-                item.className = 'response-item';
-                item.innerHTML = `
-                    <div class="response-header">
-                        <div>
-                            <div class="response-title">Response #${responses.length - index}</div>
-                            <div class="response-date">${response.submittedAt ? new Date(response.submittedAt).toLocaleString() : 'Unknown date'}</div>
-                        </div>
-                        <button class="btn-primary" onclick="toggleDetails(${response.id})">View Details</button>
-                    </div>
-                    <div class="response-summary">
-                        <div class="summary-item">
-                            <div class="summary-label">Position</div>
-                            <div class="summary-value">${response.councilPosition || 'Not specified'}</div>
-                        </div>
-                        <div class="summary-item">
-                            <div class="summary-label">Tenure</div>
-                            <div class="summary-value">${response.tenure || 'N/A'}</div>
-                        </div>
-                        <div class="summary-item">
-                            <div class="summary-label">Satisfaction</div>
-                            <div class="summary-value">${response.satisfaction ? response.satisfaction + '/5' : 'N/A'}</div>
-                        </div>
-                        <div class="summary-item">
-                            <div class="summary-label">Financial Issues</div>
-                            <div class="summary-value">${response.financialChallenges || 'N/A'}</div>
-                        </div>
-                    </div>
-                    <div class="response-details" id="details-${response.id}">
-                        ${response.roleDislikes ? `
-                            <div class="detail-section">
-                                <div class="detail-label">Role Challenges:</div>
-                                <div class="detail-text">${response.roleDislikes}</div>
-                            </div>
-                        ` : ''}
-                        ${response.achievements ? `
-                            <div class="detail-section">
-                                <div class="detail-label">Achievements:</div>
-                                <div class="detail-text">${response.achievements}</div>
-                            </div>
-                        ` : ''}
-                        ${response.weaknesses ? `
-                            <div class="detail-section">
-                                <div class="detail-label">Areas for Improvement:</div>
-                                <div class="detail-text">${response.weaknesses}</div>
-                            </div>
-                        ` : ''}
-                        ${response.retreatGoals ? `
-                            <div class="detail-section">
-                                <div class="detail-label">Retreat Goals:</div>
-                                <div class="detail-text">${response.retreatGoals}</div>
-                            </div>
-                        ` : ''}
-                        ${response.trainingTopics ? `
-                            <div class="detail-section">
-                                <div class="detail-label">Training Topics:</div>
-                                <div class="detail-text">${response.trainingTopics}</div>
-                            </div>
-                        ` : ''}
-                        ${response.executiveConcerns ? `
-                            <div class="detail-section">
-                                <div class="detail-label">Executive Concerns:</div>
-                                <div class="detail-text">${response.executiveConcerns}</div>
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
-                list.appendChild(item);
-            });
-        }
-
-        // Toggle details
-        function toggleDetails(id) {
-            const details = document.getElementById(`details-${id}`);
-            if (details.style.display === 'block') {
-                details.style.display = 'none';
-            } else {
-                details.style.display = 'block';
-            }
-        }
-
-        // Switch views
-        function switchView(view) {
-            currentView = view;
-            const dashboardView = document.getElementById('dashboardView');
-            const responsesView = document.getElementById('responsesView');
-            const btnDashboard = document.getElementById('btnDashboard');
-            const btnResponses = document.getElementById('btnResponses');
-
-            if (view === 'dashboard') {
-                dashboardView.style.display = 'grid';
-                responsesView.style.display = 'none';
-                btnDashboard.className = 'btn-primary';
-                btnResponses.className = 'btn-secondary';
-                updateDashboard();
-            } else {
-                dashboardView.style.display = 'none';
-                responsesView.style.display = 'block';
-                btnDashboard.className = 'btn-secondary';
-                btnResponses.className = 'btn-primary';
-                updateResponsesList();
-            }
-        }
-
-        // Export data
-        function exportData() {
-            const dataStr = JSON.stringify(responses, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `retreat_responses_${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-        }
-
-        // Export report
-        function exportReport() {
-            const report = [];
-            report.push('='.repeat(80));
-            report.push('UTech Students\' Union Council Pre-Retreat Assessment Report');
-            report.push('Generated: ' + new Date().toLocaleString());
-            report.push('='.repeat(80));
-            report.push('');
-            report.push(`Total Responses: ${responses.length}`);
-            report.push('');
-            
-            if (responses.length > 0) {
-                // Satisfaction
-                report.push('SATISFACTION ANALYSIS');
-                report.push('-'.repeat(80));
-                const avgSat = responses.reduce((sum, r) => sum + (parseInt(r.satisfaction) || 0), 0) / responses.length;
-                report.push(`Average Satisfaction: ${avgSat.toFixed(2)} out of 5.0`);
-                report.push('');
-                
-                // Financial
-                report.push('FINANCIAL CHALLENGES');
-                report.push('-'.repeat(80));
-                const finYes = responses.filter(r => r.financialChallenges === 'yes').length;
-                report.push(`Yes: ${finYes} (${((finYes/responses.length)*100).toFixed(1)}%)`);
-                const finNo = responses.filter(r => r.financialChallenges === 'no').length;
-                report.push(`No: ${finNo} (${((finNo/responses.length)*100).toFixed(1)}%)`);
-                report.push('');
-                
-                // Academic
-                report.push('ACADEMIC CHALLENGES');
-                report.push('-'.repeat(80));
-                const acadYes = responses.filter(r => r.academicChallenges === 'yes').length;
-                report.push(`Yes: ${acadYes} (${((acadYes/responses.length)*100).toFixed(1)}%)`);
-                const acadNo = responses.filter(r => r.academicChallenges === 'no').length;
-                report.push(`No: ${acadNo} (${((acadNo/responses.length)*100).toFixed(1)}%)`);
-            }
-            
-            const reportText = report.join('\n');
-            const dataBlob = new Blob([reportText], { type: 'text/plain' });
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `retreat_analysis_report_${new Date().toISOString().split('T')[0]}.txt`;
-            link.click();
-        }
-
-        // Import data
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = async function(event) {
-                    try {
-                        const data = JSON.parse(event.target.result);
-                        if (Array.isArray(data)) {
-                            for (const response of data) {
-                                await saveResponse(response);
-                            }
-                            alert(`Imported ${data.length} responses successfully!`);
-                        } else {
-                            await saveResponse(data);
-                            alert('Imported 1 response successfully!');
-                        }
-                    } catch (error) {
-                        alert('Invalid JSON file format');
-                    }
-                };
-                reader.readAsText(file);
-            }
-        });
-
-        // Clear all data
-        document.getElementById('btnClear').addEventListener('click', async function() {
-            if (confirm('Are you sure you want to delete all responses? This cannot be undone.')) {
-                try {
-                    const result = await window.storage.list('retreat_response:');
-                    if (result && result.keys) {
-                        for (const key of result.keys) {
-                            await window.storage.delete(key);
-                        }
-                    }
-                    responses = [];
-                    updateUI();
-                    alert('All data cleared successfully');
-                } catch (error) {
-                    console.error('Error clearing data:', error);
-                    alert('Error clearing data');
-                }
-            }
-        });
-
-        // Event listeners
-        document.getElementById('btnDashboard').addEventListener('click', () => switchView('dashboard'));
-        document.getElementById('btnResponses').addEventListener('click', () => switchView('responses'));
-        document.getElementById('btnExport').addEventListener('click', exportData);
-        document.getElementById('btnReport').addEventListener('click', exportReport);
-    </script>
-</body>
-</html>
+                        counts[p] = (

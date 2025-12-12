@@ -154,7 +154,6 @@
     <div class="login-container" id="loginScreen">
         <div class="login-logo">🔒</div>
         <h1>Analytics Login</h1>
-        <!-- <p style="margin: 20px 0; color: #666;">Username: <strong>USU</strong><br>Password: <strong>UTech2024!@</strong></p> -->
         <div class="error-message" id="errorMessage">Incorrect credentials</div>
         <div class="form-group">
             <label>Username</label>
@@ -208,6 +207,13 @@
                 </div>
             </div>
 
+            <div class="chart-container">
+                <h3>Responses by Board</h3>
+                <div class="chart-wrapper" style="height: 300px;">
+                    <canvas id="boardChart"></canvas>
+                </div>
+            </div>
+
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
                 <div class="chart-container">
                     <h3>Council Tenure</h3>
@@ -220,6 +226,13 @@
                     <div class="chart-wrapper" style="height: 300px;">
                         <canvas id="constitutionChart"></canvas>
                     </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3>Satisfaction by Board</h3>
+                <div class="chart-wrapper">
+                    <canvas id="boardSatisfactionChart"></canvas>
                 </div>
             </div>
 
@@ -490,6 +503,79 @@
                     indexAxis: 'y',
                     scales: {
                         x: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // Board Analysis
+            const boardCol = findColumn(['board', 'councilboard']);
+            const boardCounts = {};
+            responses.forEach(r => {
+                const board = r[boardCol] || 'Not specified';
+                if (board.trim()) {
+                    boardCounts[board] = (boardCounts[board] || 0) + 1;
+                }
+            });
+
+            chartInstances.board = new Chart(document.getElementById('boardChart'), {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(boardCounts),
+                    datasets: [{
+                        data: Object.values(boardCounts),
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // Satisfaction by Board
+            const boardSatisfactionData = {};
+            responses.forEach(r => {
+                const board = r[boardCol] || 'Not specified';
+                const satisfaction = parseInt(r[satisfactionCol]);
+                if (!isNaN(satisfaction) && satisfaction >= 1 && satisfaction <= 5) {
+                    if (!boardSatisfactionData[board]) {
+                        boardSatisfactionData[board] = [];
+                    }
+                    boardSatisfactionData[board].push(satisfaction);
+                }
+            });
+
+            const boardLabels = Object.keys(boardSatisfactionData);
+            const boardAvgSatisfaction = boardLabels.map(board => {
+                const scores = boardSatisfactionData[board];
+                return (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
+            });
+
+            chartInstances.boardSatisfaction = new Chart(document.getElementById('boardSatisfactionChart'), {
+                type: 'bar',
+                data: {
+                    labels: boardLabels,
+                    datasets: [{
+                        label: 'Average Satisfaction Score',
+                        data: boardAvgSatisfaction,
+                        backgroundColor: '#764ba2'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            max: 5,
+                            ticks: { stepSize: 1 }
+                        }
                     },
                     plugins: {
                         legend: { display: false }

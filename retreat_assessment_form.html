@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retreat Assessment Analyzer</title>
+    <title>Retreat Assessment Analytics</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -13,7 +13,6 @@
             padding: 20px;
             min-height: 100vh;
         }
-        
         .login-container {
             max-width: 450px;
             margin: 100px auto;
@@ -34,28 +33,14 @@
             justify-content: center;
             font-size: 40px;
         }
-        .login-title {
-            font-size: 28px;
-            color: #333;
-            margin-bottom: 10px;
-        }
-        .login-subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-        .login-form {
-            text-align: left;
-        }
         .form-group {
             margin-bottom: 20px;
+            text-align: left;
         }
         .form-group label {
             display: block;
-            color: #333;
-            font-weight: 600;
             margin-bottom: 8px;
-            font-size: 14px;
+            font-weight: 600;
         }
         .form-group input {
             width: 100%;
@@ -63,11 +48,6 @@
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 14px;
-            transition: border-color 0.3s;
-        }
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
         }
         .login-button {
             width: 100%;
@@ -79,11 +59,6 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .login-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
         }
         .error-message {
             background: #fee;
@@ -91,10 +66,8 @@
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 20px;
-            font-size: 14px;
             display: none;
         }
-        
         .dashboard {
             display: none;
             max-width: 1400px;
@@ -104,40 +77,22 @@
             background: white;
             padding: 30px;
             border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             margin-bottom: 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
         }
-        .dashboard-title {
-            font-size: 32px;
-            color: #333;
-        }
-        .header-actions {
-            display: flex;
-            gap: 10px;
-        }
-        .logout-btn, .refresh-btn {
+        .header-actions button {
             padding: 12px 24px;
             color: white;
             border: none;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
+            margin-left: 10px;
         }
-        .logout-btn {
-            background: #f44336;
-        }
-        .refresh-btn {
-            background: #4caf50;
-        }
-        .logout-btn:hover, .refresh-btn:hover {
-            transform: translateY(-2px);
-        }
+        .refresh-btn { background: #4caf50; }
+        .logout-btn { background: #f44336; }
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -148,7 +103,6 @@
             background: white;
             padding: 25px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         .stat-value {
             font-size: 36px;
@@ -156,22 +110,11 @@
             color: #667eea;
             margin: 10px 0;
         }
-        .stat-label {
-            color: #666;
-            font-size: 14px;
-        }
         .chart-container {
             background: white;
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             margin-bottom: 30px;
-        }
-        .chart-title {
-            font-size: 20px;
-            color: #333;
-            margin-bottom: 20px;
-            font-weight: 600;
         }
         .chart-wrapper {
             position: relative;
@@ -181,7 +124,6 @@
             background: white;
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         .response-card {
             border-left: 4px solid #667eea;
@@ -189,28 +131,6 @@
             margin-bottom: 20px;
             background: #f8f9ff;
             border-radius: 8px;
-        }
-        .response-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            font-weight: 600;
-            color: #333;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .response-field {
-            margin-bottom: 15px;
-        }
-        .response-field strong {
-            color: #667eea;
-            display: block;
-            margin-bottom: 5px;
-        }
-        .no-data {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
         }
         .loading-spinner {
             border: 4px solid #f3f3f3;
@@ -225,97 +145,69 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .debug-info {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            font-size: 13px;
-            font-family: monospace;
-        }
     </style>
 </head>
 <body>
     <div class="login-container" id="loginScreen">
         <div class="login-logo">🔒</div>
-        <h1 class="login-title">Authorized Access Only</h1>
-        <p class="login-subtitle">Retreat Assessment Data Analyzer</p>
-        
-        <div class="error-message" id="errorMessage">
-            Incorrect username or password. Please try again.
-        </div>
-        
+        <h1>Analytics Login</h1>
+        <div class="error-message" id="errorMessage">Incorrect credentials</div>
         <form class="login-form" id="loginForm">
             <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required autocomplete="username">
+                <label>Username</label>
+                <input type="text" id="username" required>
             </div>
             <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required autocomplete="current-password">
+                <label>Password</label>
+                <input type="password" id="password" required>
             </div>
-            <button type="submit" class="login-button">🔓 Login to Dashboard</button>
+            <button type="submit" class="login-button">Login</button>
         </form>
     </div>
 
     <div class="dashboard" id="dashboard">
         <div class="dashboard-header">
-            <h1 class="dashboard-title">📊 Retreat Assessment Analytics</h1>
+            <h1>📊 Retreat Assessment Analytics</h1>
             <div class="header-actions">
-                <button class="refresh-btn" onclick="loadData()">🔄 Refresh Data</button>
-                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+                <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
+                <button class="logout-btn" onclick="logout()">Logout</button>
             </div>
         </div>
 
-        <div id="loadingMessage" style="background: white; padding: 40px; text-align: center; border-radius: 12px; margin-bottom: 20px;">
+        <div id="loadingMessage" style="background: white; padding: 40px; text-align: center; border-radius: 12px;">
             <div class="loading-spinner"></div>
-            <p style="margin-top: 20px; color: #666;">Loading data from Google Sheets...</p>
+            <p>Loading data...</p>
         </div>
 
         <div id="dashboardContent" style="display: none;">
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-label">Total Responses</div>
+                    <div>Total Responses</div>
                     <div class="stat-value" id="totalResponses">0</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Avg. Satisfaction</div>
+                    <div>Avg. Satisfaction</div>
                     <div class="stat-value" id="avgSatisfaction">-</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Financial Challenges</div>
+                    <div>Financial Challenges</div>
                     <div class="stat-value" id="financialChallenges">0</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Academic Difficulties</div>
+                    <div>Academic Difficulties</div>
                     <div class="stat-value" id="academicDifficulties">0</div>
                 </div>
             </div>
 
             <div class="chart-container">
-                <h3 class="chart-title">Satisfaction Distribution</h3>
+                <h3>Satisfaction Distribution</h3>
                 <div class="chart-wrapper">
                     <canvas id="satisfactionChart"></canvas>
                 </div>
             </div>
 
-            <div class="chart-container">
-                <h3 class="chart-title">Areas Lacking Support</h3>
-                <div class="chart-wrapper">
-                    <canvas id="supportChart"></canvas>
-                </div>
-            </div>
-
-            <div class="chart-container">
-                <h3 class="chart-title">Retreat Priorities</h3>
-                <div class="chart-wrapper">
-                    <canvas id="prioritiesChart"></canvas>
-                </div>
-            </div>
-
             <div class="responses-list">
-                <h3 class="chart-title">Individual Responses</h3>
+                <h3>Individual Responses</h3>
                 <div id="responsesList"></div>
             </div>
         </div>
@@ -324,66 +216,37 @@
     <script>
         const SHEET_ID = '1f5qAuW4s4pjwFtZTRr957lG8OjcTC95QNCwePn0yIso';
         const API_KEY = 'AIzaSyBsAGiypxxnSiTBbCWpXLHsoqWRDbZFltc';
+        const SHEET_NAME = 'Retreat-Assessment-Responses';
+        const VALID_USERS = { 'USU': 'UTech2024!@' };
         
-        const VALID_USERS = {
-            'USU': 'UTech2024!@',
-        };
-        
-        let isAuthenticated = false;
-        let currentUser = null;
         let chartInstances = {};
-
-        window.addEventListener('load', () => {
-            const savedUser = sessionStorage.getItem('authUser');
-            const authTime = sessionStorage.getItem('authTime');
-            
-            if (savedUser && authTime && (Date.now() - parseInt(authTime)) < 7200000) {
-                isAuthenticated = true;
-                currentUser = savedUser;
-                showDashboard();
-            }
-        });
 
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
             
             if (VALID_USERS[username] && VALID_USERS[username] === password) {
-                isAuthenticated = true;
-                currentUser = username;
-                
                 sessionStorage.setItem('authUser', username);
-                sessionStorage.setItem('authTime', Date.now().toString());
-                
-                showDashboard();
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                loadData();
             } else {
                 document.getElementById('errorMessage').style.display = 'block';
-                document.getElementById('password').value = '';
-                document.getElementById('password').focus();
             }
         });
 
-        function showDashboard() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-            loadData();
-        }
+        window.addEventListener('load', () => {
+            if (sessionStorage.getItem('authUser')) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                loadData();
+            }
+        });
 
         function logout() {
-            isAuthenticated = false;
-            currentUser = null;
             sessionStorage.removeItem('authUser');
-            sessionStorage.removeItem('authTime');
-            
-            Object.values(chartInstances).forEach(chart => chart.destroy());
-            chartInstances = {};
-            
-            document.getElementById('loginScreen').style.display = 'block';
-            document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('loginForm').reset();
-            document.getElementById('errorMessage').style.display = 'none';
+            location.reload();
         }
 
         async function loadData() {
@@ -391,55 +254,23 @@
             document.getElementById('dashboardContent').style.display = 'none';
             
             try {
-                // Try to fetch all sheets first to find the correct sheet name
-                const sheetsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}?key=${API_KEY}`;
-                const sheetsResponse = await fetch(sheetsUrl);
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?key=${API_KEY}`;
+                const response = await fetch(url);
                 
-                if (!sheetsResponse.ok) {
-                    throw new Error(`Cannot access spreadsheet: ${sheetsResponse.statusText}`);
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
                 }
+
+                const data = await response.json();
                 
-                const sheetsData = await sheetsResponse.json();
-                const sheets = sheetsData.sheets || [];
-                
-                console.log('Available sheets:', sheets.map(s => s.properties.title));
-                
-                // Try to find the first sheet with data
-                let foundData = null;
-                let sheetName = null;
-                
-                for (const sheet of sheets) {
-                    const name = sheet.properties.title;
-                    try {
-                        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(name)}?key=${API_KEY}`;
-                        const response = await fetch(url);
-                        
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data.values && data.values.length > 1) {
-                                foundData = data;
-                                sheetName = name;
-                                break;
-                            }
-                        }
-                    } catch (e) {
-                        console.log(`Could not read sheet: ${name}`);
-                    }
-                }
-                
-                if (!foundData) {
+                if (!data.values || data.values.length < 2) {
                     document.getElementById('loadingMessage').innerHTML = 
-                        '<div class="no-data">📭 <strong>No responses yet</strong><br><br>' +
-                        'Available sheets: ' + sheets.map(s => s.properties.title).join(', ') + '<br><br>' +
-                        'Make sure you have submitted at least one form response.<br><br>' +
-                        '<a href="index.html" style="color:#667eea; text-decoration:none; font-weight:600;">← Back to Form</a></div>';
+                        '<p style="padding: 40px; text-align: center;">No responses yet. Submit the form first!</p>';
                     return;
                 }
-                
-                console.log(`Found data in sheet: ${sheetName}`);
-                
-                const headers = foundData.values[0];
-                const rows = foundData.values.slice(1);
+
+                const headers = data.values[0];
+                const rows = data.values.slice(1);
                 
                 const responses = rows.map(row => {
                     const obj = {};
@@ -451,17 +282,10 @@
 
                 displayAnalytics(responses);
             } catch (error) {
-                console.error('Error loading data:', error);
+                console.error('Error:', error);
                 document.getElementById('loadingMessage').innerHTML = 
-                    '<div class="no-data">❌ <strong>Error loading data</strong><br><br>' + 
-                    error.message + '<br><br>' +
-                    'Common issues:<br>' +
-                    '• Google Sheets API not enabled<br>' +
-                    '• API key lacks permissions<br>' +
-                    '• Sheet ID is incorrect<br>' +
-                    '• Sheet is private<br><br>' +
-                    'Sheet ID: ' + SHEET_ID + '<br><br>' +
-                    '<button onclick="loadData()" style="padding:10px 20px; background:#667eea; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600;">🔄 Retry</button></div>';
+                    `<p style="padding: 40px; text-align: center; color: red;">Error loading data: ${error.message}<br><br>
+                    <button onclick="loadData()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer;">Retry</button></p>`;
             }
         }
 
@@ -475,23 +299,18 @@
             document.getElementById('totalResponses').textContent = responses.length;
 
             const satisfactionScores = responses
-                .map(r => parseInt(r.satisfaction || r['Overall satisfaction with your Council experience:']))
+                .map(r => parseInt(r.satisfaction))
                 .filter(s => !isNaN(s));
+            
             const avgSat = satisfactionScores.length > 0 
                 ? (satisfactionScores.reduce((a, b) => a + b, 0) / satisfactionScores.length).toFixed(1)
                 : 'N/A';
             document.getElementById('avgSatisfaction').textContent = avgSat;
 
-            const financialYes = responses.filter(r => {
-                const val = r.financialChallenges || r['Are you facing financial challenges?'];
-                return val && val.toLowerCase().includes('yes');
-            }).length;
+            const financialYes = responses.filter(r => r.financialChallenges === 'yes').length;
             document.getElementById('financialChallenges').textContent = `${financialYes} (${((financialYes/responses.length)*100).toFixed(0)}%)`;
 
-            const academicYes = responses.filter(r => {
-                const val = r.academicChallenges || r['Are you experiencing academic difficulties?'];
-                return val && val.toLowerCase().includes('yes');
-            }).length;
+            const academicYes = responses.filter(r => r.academicChallenges === 'yes').length;
             document.getElementById('academicDifficulties').textContent = `${academicYes} (${((academicYes/responses.length)*100).toFixed(0)}%)`;
 
             const satCounts = [0, 0, 0, 0, 0];
@@ -504,175 +323,35 @@
             chartInstances.satisfaction = new Chart(document.getElementById('satisfactionChart'), {
                 type: 'bar',
                 data: {
-                    labels: ['Very Dissatisfied', 'Dissatisfied', 'Neutral', 'Satisfied', 'Very Satisfied'],
+                    labels: ['1 - Very Dissatisfied', '2', '3 - Neutral', '4', '5 - Very Satisfied'],
                     datasets: [{
-                        label: 'Number of Responses',
+                        label: 'Responses',
                         data: satCounts,
-                        backgroundColor: ['#f44336', '#ff9800', '#ffc107', '#8bc34a', '#4caf50'],
-                        borderRadius: 6
+                        backgroundColor: ['#f44336', '#ff9800', '#ffc107', '#8bc34a', '#4caf50']
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { 
-                            beginAtZero: true, 
-                            ticks: { stepSize: 1 }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false }
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
                     }
                 }
             });
-
-            const supportNeeds = {};
-            responses.forEach(r => {
-                const field = r.lackSupport || r['Select areas where you feel you lack adequate support:'] || '';
-                if (field) {
-                    const needs = field.split(',').map(n => n.trim()).filter(n => n);
-                    needs.forEach(need => {
-                        const label = formatSupportLabel(need);
-                        supportNeeds[label] = (supportNeeds[label] || 0) + 1;
-                    });
-                }
-            });
-
-            if (Object.keys(supportNeeds).length > 0) {
-                const sortedSupport = Object.entries(supportNeeds)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 8);
-
-                chartInstances.support = new Chart(document.getElementById('supportChart'), {
-                    type: 'bar',
-                    data: {
-                        labels: sortedSupport.map(s => s[0]),
-                        datasets: [{
-                            label: 'Council Members',
-                            data: sortedSupport.map(s => s[1]),
-                            backgroundColor: '#667eea',
-                            borderRadius: 6
-                        }]
-                    },
-                    options: {
-                        indexAxis: 'y',
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            x: { 
-                                beginAtZero: true, 
-                                ticks: { stepSize: 1 }
-                            }
-                        },
-                        plugins: {
-                            legend: { display: false }
-                        }
-                    }
-                });
-            }
-
-            const priorities = {};
-            responses.forEach(r => {
-                const field = r.retreatPriorities || r['Which areas should the retreat prioritize? (Select up to 3)'] || '';
-                if (field) {
-                    const items = field.split(',').map(n => n.trim()).filter(n => n);
-                    items.forEach(item => {
-                        const label = formatPriorityLabel(item);
-                        priorities[label] = (priorities[label] || 0) + 1;
-                    });
-                }
-            });
-
-            if (Object.keys(priorities).length > 0) {
-                const sortedPriorities = Object.entries(priorities)
-                    .sort((a, b) => b[1] - a[1]);
-
-                chartInstances.priorities = new Chart(document.getElementById('prioritiesChart'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: sortedPriorities.map(p => p[0]),
-                        datasets: [{
-                            data: sortedPriorities.map(p => p[1]),
-                            backgroundColor: [
-                                '#667eea', '#764ba2', '#f093fb', '#4facfe',
-                                '#43e97b', '#fa709a', '#fee140', '#30cfd0'
-                            ],
-                            borderWidth: 2,
-                            borderColor: '#fff'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'right',
-                                labels: {
-                                    padding: 15,
-                                    font: { size: 12 }
-                                }
-                            }
-                        }
-                    }
-                });
-            }
 
             const responsesList = document.getElementById('responsesList');
-            responsesList.innerHTML = responses.map((r, i) => {
-                const timestamp = r.Timestamp || r.submittedAt || '';
-                const position = r.councilPosition || r['Council Position (Optional):'] || 'Not specified';
-                const tenure = r.tenure || r['Time on Students\' Union Council:'] || 'Not specified';
-                const satisfaction = r.satisfaction || r['Overall satisfaction with your Council experience:'] || 'N/A';
-                const challenges = r.roleDislikes || r['What aspects of your Council role do you find most challenging or frustrating?'] || '';
-                const achievements = r.achievements || r['What are your top 3 achievements in your Council role this year?'] || '';
-                const weaknesses = r.weaknesses || r['What leadership or portfolio-specific areas do you feel you need to improve or develop?'] || '';
-                const retreatGoals = r.retreatGoals || r['What do you hope to gain from this mandatory Council retreat?'] || '';
-                
-                return `
-                    <div class="response-card">
-                        <div class="response-header">
-                            <span><strong>Response #${i + 1}</strong></span>
-                            <span style="color: #888; font-size: 13px;">${timestamp ? new Date(timestamp).toLocaleString() : 'No date'}</span>
-                        </div>
-                        <div class="response-field"><strong>Position:</strong> ${position}</div>
-                        <div class="response-field"><strong>Tenure:</strong> ${tenure}</div>
-                        <div class="response-field"><strong>Satisfaction:</strong> ${satisfaction}/5</div>
-                        ${challenges ? `<div class="response-field"><strong>Main Challenges:</strong> ${challenges}</div>` : ''}
-                        ${achievements ? `<div class="response-field"><strong>Top Achievements:</strong> ${achievements}</div>` : ''}
-                        ${weaknesses ? `<div class="response-field"><strong>Areas for Improvement:</strong> ${weaknesses}</div>` : ''}
-                        ${retreatGoals ? `<div class="response-field"><strong>Retreat Goals:</strong> ${retreatGoals}</div>` : ''}
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function formatSupportLabel(value) {
-            const labels = {
-                'executive': 'Executive Board Guidance',
-                'peers': 'Peer Collaboration',
-                'university': 'University Support',
-                'financial': 'Financial Resources',
-                'office': 'Office Resources',
-                'training': 'Training & Development',
-                'time': 'Time Management',
-                'communication': 'Communication Channels'
-            };
-            return labels[value] || value;
-        }
-
-        function formatPriorityLabel(value) {
-            const labels = {
-                'team-building': 'Team Building',
-                'strategic-planning': 'Strategic Planning',
-                'skills-training': 'Skills Training',
-                'conflict-resolution': 'Conflict Resolution',
-                'constitution-review': 'Constitution Review',
-                'student-engagement': 'Student Engagement',
-                'wellness': 'Wellness & Self-Care'
-            };
-            return labels[value] || value;
+            responsesList.innerHTML = responses.map((r, i) => `
+                <div class="response-card">
+                    <div style="font-weight: 600; margin-bottom: 10px;">Response #${i + 1}</div>
+                    <div><strong>Position:</strong> ${r.councilPosition || 'Not specified'}</div>
+                    <div><strong>Tenure:</strong> ${r.tenure || 'N/A'}</div>
+                    <div><strong>Satisfaction:</strong> ${r.satisfaction || 'N/A'}/5</div>
+                    ${r.roleDislikes ? `<div style="margin-top: 10px;"><strong>Challenges:</strong> ${r.roleDislikes}</div>` : ''}
+                    ${r.retreatGoals ? `<div style="margin-top: 10px;"><strong>Retreat Goals:</strong> ${r.retreatGoals}</div>` : ''}
+                </div>
+            `).join('');
         }
     </script>
 </body>
+</html>
 </html>

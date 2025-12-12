@@ -289,36 +289,115 @@
             }
         }
 
-        function displayAnalytics(responses) {
+        function displayAnalytics(responses, headers) {
             document.getElementById('loadingMessage').style.display = 'none';
             document.getElementById('dashboardContent').style.display = 'block';
 
             Object.values(chartInstances).forEach(chart => chart.destroy());
             chartInstances = {};
 
+            // Show total responses
             document.getElementById('totalResponses').textContent = responses.length;
 
+            // Find columns by checking first few characters or common patterns
+            const findColumn = (patterns) => {
+                return headers.find(h => {
+                    const lower = h.toLowerCase();
+                    return patterns.some(p => lower.includes(p.toLowerCase()) || lower === p.toLowerCase());
+                });
+            };
+
+            // Map common field names
+            const satisfactionCol = findColumn(['satisfaction', 'rating', 'satisfied']);
+            const financialCol = findColumn(['financial', 'finance', 'money']);
+            const academicCol = findColumn(['academic', 'grades', 'school']);
+            
+            // Calculate satisfaction stats
             const satisfactionScores = responses
-                .map(r => parseInt(r.satisfaction))
-                .filter(s => !isNaN(s));
+                .map(r => parseInt(r[satisfactionCol] || r[headers[4]])) // Column 4 based on your data
+                .filter(s => !isNaN(s) && s >= 1 && s <= 5);
             
             const avgSat = satisfactionScores.length > 0 
                 ? (satisfactionScores.reduce((a, b) => a + b, 0) / satisfactionScores.length).toFixed(1)
                 : 'N/A';
             document.getElementById('avgSatisfaction').textContent = avgSat;
 
-            const financialYes = responses.filter(r => r.financialChallenges === 'yes').length;
-            document.getElementById('financialChallenges').textContent = `${financialYes} (${((financialYes/responses.length)*100).toFixed(0)}%)`;
+            // Financial challenges
+            const financialYes = responses.filter(r => {
+                const val = (r[financialCol] || '').toLowerCase();
+                return val === 'yes' || val.includes('financial');
+            }).length;
+            document.getElementById('financialChallenges').textContent = responses.length > 0 
+                ? `${financialYes} (${((financialYes/responses.length)*100).toFixed(0)}%)`
+                : '0';
 
-            const academicYes = responses.filter(r => r.academicChallenges === 'yes').length;
-            document.getElementById('academicDifficulties').textContent = `${academicYes} (${((academicYes/responses.length)*100).toFixed(0)}%)`;
+            // Academic challenges
+            const academicYes = responses.filter(r => {
+                const val = (r[academicCol] || '').toLowerCase();
+                return val === 'yes' || val.includes('academic') || val.includes('grades');
+            }).length;
+            document.getElementById('academicDifficulties').textContent = responses.length > 0
+                ? `${academicYes} (${((academicYes/responses.length)*100).toFixed(0)}%)`
+                : '0';
 
+            // Chart
             const satCounts = [0, 0, 0, 0, 0];
             satisfactionScores.forEach(score => {
                 if (score >= 1 && score <= 5) {
                     satCounts[score - 1]++;
                 }
             });
+
+            chartInstances.satisfaction = new Chart(document.getElementById('satisfactionChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['1 - Very Dissatisfied', '2', '3 - Neutral', '4', '5 - Very Satisfied'],
+                    datasets: [{
+                        label: 'Responses',
+                        data: satCounts,
+                        backgroundColor: ['#f44336', '#ff9800', '#ffc107', '#8bc34a', '#4caf50']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // Display responses with smart formatting
+            const responsesList = document.getElementById('responsesList');
+            responsesList.innerHTML = responses.map((r, i) => {
+                let html = `<div class="response-card">
+                    <div style="font-weight: 600; margin-bottom: 15px; font-size: 18px; color: #667eea;">
+                        Response #${i + 1}
+                        ${r[headers[0]] ? `<span style="font-size: 12px; color: #999; font-weight: normal;"> - ${new Date(r[headers[0]]).toLocaleString()}</span>` : ''}
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">`;
+                
+                // Display key fields in a grid
+                headers.forEach((header, idx) => {
+                    const value = r[header];
+                    if (value && value.trim() && idx > 0) { // Skip timestamp
+                        // Truncate very long text
+                        const displayValue = value.length > 100 ? value.substring(0, 100) + '...' : value;
+                        html += `
+                            <div style="padding: 8px; background: white; border-radius: 6px;">
+                                <div style="font-size: 11px; color: #666; text-transform: uppercase; margin-bottom: 4px;">${header}</div>
+                                <div style="font-weight: 500;">${displayValue}</div>
+                            </div>`;
+                    }
+                });
+                
+                html += '</div></div>';
+                return html;
+            }).join('');
+        }
 
             chartInstances.satisfaction = new Chart(document.getElementById('satisfactionChart'), {
                 type: 'bar',

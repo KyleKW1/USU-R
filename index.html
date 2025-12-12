@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retreat Assessment Analyzer</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <title>Pre-Retreat Assessment Form</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -13,667 +12,603 @@
             padding: 20px;
             min-height: 100vh;
         }
-        
-        .login-container {
-            max-width: 450px;
-            margin: 100px auto;
+        .top-nav {
+            text-align: right;
+            padding: 10px;
+        }
+        .top-nav a {
+            color: white;
+            text-decoration: none;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            padding: 50px 40px;
-            text-align: center;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
         }
-        .login-logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-        }
-        .login-title {
-            font-size: 28px;
+        h1 {
             color: #333;
             margin-bottom: 10px;
+            font-size: 28px;
         }
-        .login-subtitle {
+        .subtitle {
             color: #666;
             margin-bottom: 30px;
             font-size: 14px;
+            font-style: italic;
         }
-        .login-form {
-            text-align: left;
+        .section {
+            margin-bottom: 35px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .section:last-child {
+            border-bottom: none;
+        }
+        h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+        }
+        h2::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 24px;
+            background: #667eea;
+            margin-right: 12px;
         }
         .form-group {
             margin-bottom: 20px;
         }
-        .form-group label {
+        label {
             display: block;
-            color: #333;
-            font-weight: 600;
             margin-bottom: 8px;
+            color: #444;
+            font-weight: 500;
             font-size: 14px;
         }
-        .form-group input {
+        input[type="text"], input[type="email"], textarea, select {
             width: 100%;
-            padding: 14px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
             font-size: 14px;
+            font-family: inherit;
             transition: border-color 0.3s;
         }
-        .form-group input:focus {
+        input:focus, textarea:focus, select:focus {
             outline: none;
             border-color: #667eea;
         }
-        .login-button {
-            width: 100%;
-            padding: 14px;
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .rating-group, .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .rating-option, .checkbox-option {
+            display: flex;
+            align-items: center;
+        }
+        .rating-option input, .checkbox-option input {
+            margin-right: 8px;
+        }
+        button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            padding: 14px 40px;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
             transition: transform 0.2s;
         }
-        .login-button:hover {
+        button:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
         }
-        .error-message {
-            background: #fee;
-            color: #c33;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            display: none;
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
-        
-        .dashboard {
-            display: none;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        .dashboard-header {
-            background: white;
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        .dashboard-title {
-            font-size: 32px;
-            color: #333;
-        }
-        .header-actions {
-            display: flex;
-            gap: 10px;
-        }
-        .logout-btn, .refresh-btn {
-            padding: 12px 24px;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .logout-btn {
-            background: #f44336;
-        }
-        .refresh-btn {
-            background: #4caf50;
-        }
-        .logout-btn:hover, .refresh-btn:hover {
-            transform: translateY(-2px);
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .stat-value {
-            font-size: 36px;
-            font-weight: bold;
-            color: #667eea;
-            margin: 10px 0;
-        }
-        .stat-label {
-            color: #666;
-            font-size: 14px;
-        }
-        .chart-container {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        .chart-title {
-            font-size: 20px;
-            color: #333;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-        .chart-wrapper {
-            position: relative;
-            height: 400px;
-        }
-        .responses-list {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .response-card {
-            border-left: 4px solid #667eea;
-            padding: 20px;
-            margin-bottom: 20px;
+        .note {
             background: #f8f9ff;
-            border-radius: 8px;
-        }
-        .response-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            font-weight: 600;
-            color: #333;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .response-field {
-            margin-bottom: 15px;
-        }
-        .response-field strong {
-            color: #667eea;
-            display: block;
-            margin-bottom: 5px;
-        }
-        .no-data {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-        .loading-spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .debug-info {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
             padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 30px;
             font-size: 13px;
-            font-family: monospace;
+            color: #555;
+        }
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #4caf50;
+            margin-bottom: 20px;
+            font-weight: 500;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="login-container" id="loginScreen">
-        <div class="login-logo">🔒</div>
-        <h1 class="login-title">Authorized Access Only</h1>
-        <p class="login-subtitle">Retreat Assessment Data Analyzer</p>
+    <div class="top-nav">
+        <a href="retreat_assessment_form.html">📊 View Analytics Dashboard</a>
+    </div>
+    
+    <div class="container">
+        <div class="success-message" id="successMessage">
+            ✅ <strong>Thank you!</strong> Your response has been successfully submitted.
+        </div>
+
+        <h1>UTech Students' Union Council Pre-Retreat Assessment Form</h1>
+        <p class="subtitle">Your responses will help us create a more meaningful and productive retreat experience as mandated by Article X, Section 16 of the Students' Union Constitution</p>
         
-        <div class="error-message" id="errorMessage">
-            Incorrect username or password. Please try again.
+        <div class="note">
+            <strong>Confidential:</strong> All responses are anonymous and will be used solely for planning purposes to better support the Council and student body. This assessment aligns with our mission: "To effectively serve and protect the rights of students promoting their academic, social, cultural, spiritual and physical development."
         </div>
         
-        <form class="login-form" id="loginForm">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required autocomplete="username">
+        <form id="assessmentForm">
+            <!-- Personal Information -->
+            <div class="section">
+                <h2>Council Member Information</h2>
+                <div class="form-group">
+                    <label for="name">Name (Optional):</label>
+                    <input type="text" id="name" name="name">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email (Optional):</label>
+                    <input type="email" id="email" name="email">
+                </div>
+                <div class="form-group">
+                    <label for="councilPosition">Council Position (Optional):</label>
+                    <select id="councilPosition" name="councilPosition">
+                        <option value="">Select your position...</option>
+                        <optgroup label="Board of Executives">
+                            <option value="president">President</option>
+                            <option value="1st-vp">1st Vice President Academic Affairs, Clubs & Societies</option>
+                            <option value="vp-finance">Vice President, Finance</option>
+                            <option value="vp-student-services">Vice President, Student Services</option>
+                            <option value="vp-pr">Vice President, Public Relations</option>
+                            <option value="exec-secretary">Executive Secretary</option>
+                        </optgroup>
+                        <optgroup label="Board of Representatives">
+                            <option value="sci-sport-rep">Faculty of Science and Sport Representative</option>
+                            <option value="health-rep">College of Health Sciences Representative</option>
+                            <option value="edu-liberal-rep">Faculty of Education and Liberal Studies Representative</option>
+                            <option value="engineering-rep">School of Engineering Representative</option>
+                            <option value="scit-rep">School of Computing and IT Representative</option>
+                            <option value="soba-rep">School of Business Administration/JDSEEL Representative</option>
+                            <option value="blm-rep">School of Building and Land Management Representative</option>
+                            <option value="arch-rep">Caribbean School of Architecture Representative</option>
+                            <option value="law-rep">Faculty of Law Representative</option>
+                            <option value="western-rep">Western Campus Representative</option>
+                            <option value="resident-rep">Resident Students' Representative</option>
+                            <option value="grad-rep">Graduate Students' Representative</option>
+                            <option value="intl-rep">International Students' Representative</option>
+                            <option value="med-rep">Joint Colleges of Medicine, Oral Health, and Veterinary Sciences Representative</option>
+                        </optgroup>
+                        <optgroup label="Board of Directors">
+                            <option value="dir-elections">Director of Elections and Regulatory Affairs</option>
+                            <option value="dir-community">Director of Community Service</option>
+                            <option value="dir-health-safety">Director of Health and Safety</option>
+                            <option value="dir-entertainment">Director of Entertainment and Cultural Activities</option>
+                            <option value="dir-sport">Director of Sport</option>
+                            <option value="dir-spiritual">Director of Spiritual Development</option>
+                            <option value="dir-special">Director of Special Projects</option>
+                            <option value="editor">Editor in Chief</option>
+                        </optgroup>
+                        <optgroup label="Board of Advisors">
+                            <option value="advisor-pres">Advisor to the President</option>
+                            <option value="advisor-1vp">Advisor to the 1st Vice President</option>
+                            <option value="exec-assistant">Executive Assistant</option>
+                            <option value="advisor-vpss">Special Advisor to VP Student Services</option>
+                            <option value="pres-assistant">President's Assistant</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="tenure">Time on Students' Union Council:</label>
+                    <select id="tenure" name="tenure" required>
+                        <option value="">Select...</option>
+                        <option value="first-year">First year on Council</option>
+                        <option value="second-year">Second year on Council</option>
+                        <option value="third-year">Third year or more on Council</option>
+                    </select>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required autocomplete="current-password">
+            
+            <!-- Job Satisfaction -->
+            <div class="section">
+                <h2>Council Experience & Effectiveness</h2>
+                <div class="form-group">
+                    <label>Overall satisfaction with your Council experience:</label>
+                    <div class="rating-group">
+                        <label class="rating-option">
+                            <input type="radio" name="satisfaction" value="1" required>
+                            Very Dissatisfied
+                        </label>
+                        <label class="rating-option">
+                            <input type="radio" name="satisfaction" value="2">
+                            Dissatisfied
+                        </label>
+                        <label class="rating-option">
+                            <input type="radio" name="satisfaction" value="3">
+                            Neutral
+                        </label>
+                        <label class="rating-option">
+                            <input type="radio" name="satisfaction" value="4">
+                            Satisfied
+                        </label>
+                        <label class="rating-option">
+                            <input type="radio" name="satisfaction" value="5">
+                            Very Satisfied
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="roleDislikes">What aspects of your Council role do you find most challenging or frustrating?</label>
+                    <textarea id="roleDislikes" name="roleDislikes" placeholder="Consider: portfolio responsibilities, time management, resource constraints, communication barriers, etc." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="executiveConcerns">Are there concerns about the Executive Board or Council leadership you'd like to address?</label>
+                    <textarea id="executiveConcerns" name="executiveConcerns" placeholder="This may include decision-making processes, transparency, communication, or guidance received"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="councilDynamics">Describe any challenges in Council dynamics or relationships with fellow Council members:</label>
+                    <textarea id="councilDynamics" name="councilDynamics" placeholder="Consider: Board interactions, collaboration between portfolios, conflicts, communication issues, etc."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="studentBodyChallenges">What challenges do you face in representing or serving the student body?</label>
+                    <textarea id="studentBodyChallenges" name="studentBodyChallenges" placeholder="Consider: student engagement, feedback mechanisms, addressing student concerns, etc."></textarea>
+                </div>
             </div>
-            <button type="submit" class="login-button">🔓 Login to Dashboard</button>
+            
+            <!-- Personal Development -->
+            <div class="section">
+                <h2>Leadership Development & Portfolio Performance</h2>
+                <div class="form-group">
+                    <label for="achievements">What are your top 3 achievements in your Council role this year?</label>
+                    <textarea id="achievements" name="achievements" placeholder="Consider: programs implemented, initiatives led, student impact, collaboration successes, etc." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="weaknesses">What leadership or portfolio-specific areas do you feel you need to improve or develop?</label>
+                    <textarea id="weaknesses" name="weaknesses" placeholder="Be honest - this helps us plan targeted training and support" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="skills">What skills, training, or resources would help you serve more effectively in your portfolio?</label>
+                    <textarea id="skills" name="skills" placeholder="Examples: public speaking, conflict resolution, project management, budgeting, event planning, social media, etc."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="constitutionKnowledge">How well do you understand the Students' Union Constitution and your role's responsibilities?</label>
+                    <select id="constitutionKnowledge" name="constitutionKnowledge">
+                        <option value="">Select...</option>
+                        <option value="very-limited">Very limited understanding</option>
+                        <option value="basic">Basic understanding</option>
+                        <option value="moderate">Moderate understanding</option>
+                        <option value="strong">Strong understanding</option>
+                        <option value="expert">Expert understanding</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Support and Resources -->
+            <div class="section">
+                <h2>Support, Resources & Council Operations</h2>
+                <div class="form-group">
+                    <label>Select areas where you feel you lack adequate support:</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="lackSupport" value="executive">
+                            Executive Board guidance and mentorship
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="lackSupport" value="peers">
+                            Fellow Council members collaboration
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="lackSupport" value="university">
+                            University Administration support
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="lackSupport" value="financial">
+                            Financial resources for portfolio activities
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="lackSupport" value="office">
+                            Students' Union Office resources and facilities
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="lackSupport" value="training">
+                            Training and professional development
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="lackSupport" value="time">
+                            Time management and workload balance
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="lackSupport" value="communication">
+                            Communication channels and information flow
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="supportDetails">Please elaborate on any areas where you lack support and suggest improvements:</label>
+                    <textarea id="supportDetails" name="supportDetails" placeholder="Be specific about what would help you succeed in your role"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="codeOfConductConcerns">Have you experienced challenges related to the Council's Code of Conduct or accountability?</label>
+                    <textarea id="codeOfConductConcerns" name="codeOfConductConcerns" placeholder="This includes attendance expectations, report submissions, Council event participation, etc."></textarea>
+                </div>
+            </div>
+            
+            <!-- Financial Concerns -->
+            <div class="section">
+                <h2>Financial & Academic Well-being</h2>
+                <div class="form-group">
+                    <label>Are you facing financial challenges?</label>
+                    <div class="rating-group">
+                        <label class="rating-option">
+                            <input type="radio" name="financialChallenges" value="yes" required>
+                            Yes
+                        </label>
+                        <label class="rating-option">
+                            <input type="radio" name="financialChallenges" value="no">
+                            No
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group" id="financialDetailsSection" style="display: none;">
+                    <label>These financial challenges affect: (Select all that apply)</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="financialImpact" value="personal">
+                            My personal life and well-being
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="financialImpact" value="council">
+                            My ability to fulfill my Council role
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="financialImpact" value="academic">
+                            My ability to maintain my academics
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group" id="financialStrugglesSection" style="display: none;">
+                    <label for="financialStruggles">Please elaborate on your financial challenges (Optional but helpful):</label>
+                    <textarea id="financialStruggles" name="financialStruggles" placeholder="Examples: transportation costs to Council events, inability to afford meals during long Council days, need for additional work that conflicts with Council duties, tuition challenges, etc."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Are you experiencing academic difficulties?</label>
+                    <div class="rating-group">
+                        <label class="rating-option">
+                            <input type="radio" name="academicChallenges" value="yes" required>
+                            Yes
+                        </label>
+                        <label class="rating-option">
+                            <input type="radio" name="academicChallenges" value="no">
+                            No
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group" id="academicDetailsSection" style="display: none;">
+                    <label>These academic difficulties affect: (Select all that apply)</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="academicImpact" value="personal">
+                            My personal stress and well-being
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="academicImpact" value="council">
+                            My ability to fulfill my Council role
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="academicImpact" value="grades">
+                            My GPA and academic standing
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group" id="academicStrugglesSection" style="display: none;">
+                    <label for="academicStruggles">Please elaborate on your academic challenges (Optional but helpful):</label>
+                    <textarea id="academicStruggles" name="academicStruggles" placeholder="Examples: difficulty balancing coursework with Council duties, risk of academic probation, challenging courses this semester, missing classes for Council events, etc."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Would any of these benefit you?</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="supportNeeds" value="time-management">
+                            Time management and study skills workshop
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="supportNeeds" value="financial">
+                            Financial literacy and budgeting resources
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="supportNeeds" value="mentorship">
+                            Academic or leadership mentorship
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="supportNeeds" value="counseling">
+                            Access to counseling or wellness services
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="supportNeeds" value="flexibility">
+                            More flexible Council meeting schedules
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Retreat Expectations -->
+            <div class="section">
+                <h2>Retreat Expectations & Suggestions</h2>
+                <div class="form-group">
+                    <label for="retreatGoals">What do you hope to gain from this mandatory Council retreat?</label>
+                    <textarea id="retreatGoals" name="retreatGoals" placeholder="Reference: Constitution Article X, Section 16 - this retreat is designed for planning, leadership training, and team building" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="trainingTopics">What specific training topics would benefit you and the Council?</label>
+                    <textarea id="trainingTopics" name="trainingTopics" placeholder="Examples: parliamentary procedure, financial management, event planning, conflict resolution, public speaking, social media strategy, understanding the Constitution, etc."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Which areas should the retreat prioritize? (Select up to 3)</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="retreatPriorities" value="team-building">
+                            Team building and Council unity
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="retreatPriorities" value="strategic-planning">
+                            Strategic planning for the year
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="retreatPriorities" value="skills-training">
+                            Skills training and workshops
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="retreatPriorities" value="conflict-resolution">
+                            Addressing conflicts and improving communication
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="retreatPriorities" value="constitution-review">
+                            Constitution review and governance
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="retreatPriorities" value="student-engagement">
+                            Improving student engagement strategies
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="retreatPriorities" value="wellness">
+                            Council member wellness and self-care
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="previousRetreats">If you attended previous retreats, what worked well and what needs improvement?</label>
+                    <textarea id="previousRetreats" name="previousRetreats" placeholder="Your feedback helps us make this retreat the best yet"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="additionalComments">Any additional comments, concerns, or suggestions?</label>
+                    <textarea id="additionalComments" name="additionalComments" placeholder="This is your opportunity to share anything else on your mind"></textarea>
+                </div>
+            </div>
+            
+            <button type="submit">Submit Assessment</button>
         </form>
     </div>
-
-    <div class="dashboard" id="dashboard">
-        <div class="dashboard-header">
-            <h1 class="dashboard-title">📊 Retreat Assessment Analytics</h1>
-            <div class="header-actions">
-                <button class="refresh-btn" onclick="loadData()">🔄 Refresh Data</button>
-                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
-            </div>
-        </div>
-
-        <div id="loadingMessage" style="background: white; padding: 40px; text-align: center; border-radius: 12px; margin-bottom: 20px;">
-            <div class="loading-spinner"></div>
-            <p style="margin-top: 20px; color: #666;">Loading data from Google Sheets...</p>
-        </div>
-
-        <div id="dashboardContent" style="display: none;">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-label">Total Responses</div>
-                    <div class="stat-value" id="totalResponses">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Avg. Satisfaction</div>
-                    <div class="stat-value" id="avgSatisfaction">-</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Financial Challenges</div>
-                    <div class="stat-value" id="financialChallenges">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Academic Difficulties</div>
-                    <div class="stat-value" id="academicDifficulties">0</div>
-                </div>
-            </div>
-
-            <div class="chart-container">
-                <h3 class="chart-title">Satisfaction Distribution</h3>
-                <div class="chart-wrapper">
-                    <canvas id="satisfactionChart"></canvas>
-                </div>
-            </div>
-
-            <div class="chart-container">
-                <h3 class="chart-title">Areas Lacking Support</h3>
-                <div class="chart-wrapper">
-                    <canvas id="supportChart"></canvas>
-                </div>
-            </div>
-
-            <div class="chart-container">
-                <h3 class="chart-title">Retreat Priorities</h3>
-                <div class="chart-wrapper">
-                    <canvas id="prioritiesChart"></canvas>
-                </div>
-            </div>
-
-            <div class="responses-list">
-                <h3 class="chart-title">Individual Responses</h3>
-                <div id="responsesList"></div>
-            </div>
-        </div>
-    </div>
-
+    
     <script>
-        const SHEET_ID = '1f5qAuW4s4pjwFtZTRr957lG8OjcTC95QNCwePn0yIso';
-        const API_KEY = 'AIzaSyBsAGiypxxnSiTBbCWpXLHsoqWRDbZFltc';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw7p_wW1knNlSEeOh8ezku25iFI2IPitkOH1k2lII6YieLUvOMTdtsOA0xrvOB-K_R5wQ/exec';
+        const form = document.getElementById('assessmentForm');
+        const successMessage = document.getElementById('successMessage');
         
-        const VALID_USERS = {
-            'USU': 'UTech2024!@',
-        };
+        // Show/hide financial details
+        const financialRadios = document.querySelectorAll('input[name="financialChallenges"]');
+        const financialDetailsSection = document.getElementById('financialDetailsSection');
+        const financialStrugglesSection = document.getElementById('financialStrugglesSection');
         
-        let isAuthenticated = false;
-        let currentUser = null;
-        let chartInstances = {};
-
-        window.addEventListener('load', () => {
-            const savedUser = sessionStorage.getItem('authUser');
-            const authTime = sessionStorage.getItem('authTime');
-            
-            if (savedUser && authTime && (Date.now() - parseInt(authTime)) < 7200000) {
-                isAuthenticated = true;
-                currentUser = savedUser;
-                showDashboard();
-            }
+        financialRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'yes') {
+                    financialDetailsSection.style.display = 'block';
+                    financialStrugglesSection.style.display = 'block';
+                } else {
+                    financialDetailsSection.style.display = 'none';
+                    financialStrugglesSection.style.display = 'none';
+                }
+            });
         });
-
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        
+        // Show/hide academic details
+        const academicRadios = document.querySelectorAll('input[name="academicChallenges"]');
+        const academicDetailsSection = document.getElementById('academicDetailsSection');
+        const academicStrugglesSection = document.getElementById('academicStrugglesSection');
+        
+        academicRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'yes') {
+                    academicDetailsSection.style.display = 'block';
+                    academicStrugglesSection.style.display = 'block';
+                } else {
+                    academicDetailsSection.style.display = 'none';
+                    academicStrugglesSection.style.display = 'none';
+                }
+            });
+        });
+        
+        // Form submission
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            successMessage.style.display = 'none';
             
-            if (VALID_USERS[username] && VALID_USERS[username] === password) {
-                isAuthenticated = true;
-                currentUser = username;
-                
-                sessionStorage.setItem('authUser', username);
-                sessionStorage.setItem('authTime', Date.now().toString());
-                
-                showDashboard();
-            } else {
-                document.getElementById('errorMessage').style.display = 'block';
-                document.getElementById('password').value = '';
-                document.getElementById('password').focus();
+            const formData = new FormData(form);
+            const data = {};
+            
+            for (let [key, value] of formData.entries()) {
+                if (data[key]) {
+                    if (Array.isArray(data[key])) {
+                        data[key].push(value);
+                    } else {
+                        data[key] = [data[key], value];
+                    }
+                } else {
+                    data[key] = value;
+                }
             }
-        });
-
-        function showDashboard() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-            loadData();
-        }
-
-        function logout() {
-            isAuthenticated = false;
-            currentUser = null;
-            sessionStorage.removeItem('authUser');
-            sessionStorage.removeItem('authTime');
             
-            Object.values(chartInstances).forEach(chart => chart.destroy());
-            chartInstances = {};
-            
-            document.getElementById('loginScreen').style.display = 'block';
-            document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('loginForm').reset();
-            document.getElementById('errorMessage').style.display = 'none';
-        }
-
-        async function loadData() {
-            document.getElementById('loadingMessage').style.display = 'block';
-            document.getElementById('dashboardContent').style.display = 'none';
+            for (let key in data) {
+                if (Array.isArray(data[key])) {
+                    data[key] = data[key].join(', ');
+                }
+            }
             
             try {
-                // Try to fetch all sheets first to find the correct sheet name
-                const sheetsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}?key=${API_KEY}`;
-                const sheetsResponse = await fetch(sheetsUrl);
-                
-                if (!sheetsResponse.ok) {
-                    throw new Error(`Cannot access spreadsheet: ${sheetsResponse.statusText}`);
-                }
-                
-                const sheetsData = await sheetsResponse.json();
-                const sheets = sheetsData.sheets || [];
-                
-                console.log('Available sheets:', sheets.map(s => s.properties.title));
-                
-                // Try to find the first sheet with data
-                let foundData = null;
-                let sheetName = null;
-                
-                for (const sheet of sheets) {
-                    const name = sheet.properties.title;
-                    try {
-                        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(name)}?key=${API_KEY}`;
-                        const response = await fetch(url);
-                        
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data.values && data.values.length > 1) {
-                                foundData = data;
-                                sheetName = name;
-                                break;
-                            }
-                        }
-                    } catch (e) {
-                        console.log(`Could not read sheet: ${name}`);
-                    }
-                }
-                
-                if (!foundData) {
-                    document.getElementById('loadingMessage').innerHTML = 
-                        '<div class="no-data">📭 <strong>No responses yet</strong><br><br>' +
-                        'Available sheets: ' + sheets.map(s => s.properties.title).join(', ') + '<br><br>' +
-                        'Make sure you have submitted at least one form response.<br><br>' +
-                        '<a href="index.html" style="color:#667eea; text-decoration:none; font-weight:600;">← Back to Form</a></div>';
-                    return;
-                }
-                
-                console.log(`Found data in sheet: ${sheetName}`);
-                
-                const headers = foundData.values[0];
-                const rows = foundData.values.slice(1);
-                
-                const responses = rows.map(row => {
-                    const obj = {};
-                    headers.forEach((header, index) => {
-                        obj[header] = row[index] || '';
-                    });
-                    return obj;
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
                 });
-
-                displayAnalytics(responses);
+                
+                successMessage.style.display = 'block';
+                window.scrollTo(0, 0);
+                form.reset();
+                financialDetailsSection.style.display = 'none';
+                financialStrugglesSection.style.display = 'none';
+                academicDetailsSection.style.display = 'none';
+                academicStrugglesSection.style.display = 'none';
+                
             } catch (error) {
-                console.error('Error loading data:', error);
-                document.getElementById('loadingMessage').innerHTML = 
-                    '<div class="no-data">❌ <strong>Error loading data</strong><br><br>' + 
-                    error.message + '<br><br>' +
-                    'Common issues:<br>' +
-                    '• Google Sheets API not enabled<br>' +
-                    '• API key lacks permissions<br>' +
-                    '• Sheet ID is incorrect<br>' +
-                    '• Sheet is private<br><br>' +
-                    'Sheet ID: ' + SHEET_ID + '<br><br>' +
-                    '<button onclick="loadData()" style="padding:10px 20px; background:#667eea; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600;">🔄 Retry</button></div>';
+                console.error('Error:', error);
+                successMessage.style.display = 'block';
+                window.scrollTo(0, 0);
+                form.reset();
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Assessment';
             }
-        }
-
-        function displayAnalytics(responses) {
-            document.getElementById('loadingMessage').style.display = 'none';
-            document.getElementById('dashboardContent').style.display = 'block';
-
-            Object.values(chartInstances).forEach(chart => chart.destroy());
-            chartInstances = {};
-
-            document.getElementById('totalResponses').textContent = responses.length;
-
-            const satisfactionScores = responses
-                .map(r => parseInt(r.satisfaction || r['Overall satisfaction with your Council experience:']))
-                .filter(s => !isNaN(s));
-            const avgSat = satisfactionScores.length > 0 
-                ? (satisfactionScores.reduce((a, b) => a + b, 0) / satisfactionScores.length).toFixed(1)
-                : 'N/A';
-            document.getElementById('avgSatisfaction').textContent = avgSat;
-
-            const financialYes = responses.filter(r => {
-                const val = r.financialChallenges || r['Are you facing financial challenges?'];
-                return val && val.toLowerCase().includes('yes');
-            }).length;
-            document.getElementById('financialChallenges').textContent = `${financialYes} (${((financialYes/responses.length)*100).toFixed(0)}%)`;
-
-            const academicYes = responses.filter(r => {
-                const val = r.academicChallenges || r['Are you experiencing academic difficulties?'];
-                return val && val.toLowerCase().includes('yes');
-            }).length;
-            document.getElementById('academicDifficulties').textContent = `${academicYes} (${((academicYes/responses.length)*100).toFixed(0)}%)`;
-
-            const satCounts = [0, 0, 0, 0, 0];
-            satisfactionScores.forEach(score => {
-                if (score >= 1 && score <= 5) {
-                    satCounts[score - 1]++;
-                }
-            });
-
-            chartInstances.satisfaction = new Chart(document.getElementById('satisfactionChart'), {
-                type: 'bar',
-                data: {
-                    labels: ['Very Dissatisfied', 'Dissatisfied', 'Neutral', 'Satisfied', 'Very Satisfied'],
-                    datasets: [{
-                        label: 'Number of Responses',
-                        data: satCounts,
-                        backgroundColor: ['#f44336', '#ff9800', '#ffc107', '#8bc34a', '#4caf50'],
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { 
-                            beginAtZero: true, 
-                            ticks: { stepSize: 1 }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false }
-                    }
-                }
-            });
-
-            const supportNeeds = {};
-            responses.forEach(r => {
-                const field = r.lackSupport || r['Select areas where you feel you lack adequate support:'] || '';
-                if (field) {
-                    const needs = field.split(',').map(n => n.trim()).filter(n => n);
-                    needs.forEach(need => {
-                        const label = formatSupportLabel(need);
-                        supportNeeds[label] = (supportNeeds[label] || 0) + 1;
-                    });
-                }
-            });
-
-            if (Object.keys(supportNeeds).length > 0) {
-                const sortedSupport = Object.entries(supportNeeds)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 8);
-
-                chartInstances.support = new Chart(document.getElementById('supportChart'), {
-                    type: 'bar',
-                    data: {
-                        labels: sortedSupport.map(s => s[0]),
-                        datasets: [{
-                            label: 'Council Members',
-                            data: sortedSupport.map(s => s[1]),
-                            backgroundColor: '#667eea',
-                            borderRadius: 6
-                        }]
-                    },
-                    options: {
-                        indexAxis: 'y',
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            x: { 
-                                beginAtZero: true, 
-                                ticks: { stepSize: 1 }
-                            }
-                        },
-                        plugins: {
-                            legend: { display: false }
-                        }
-                    }
-                });
-            }
-
-            const priorities = {};
-            responses.forEach(r => {
-                const field = r.retreatPriorities || r['Which areas should the retreat prioritize? (Select up to 3)'] || '';
-                if (field) {
-                    const items = field.split(',').map(n => n.trim()).filter(n => n);
-                    items.forEach(item => {
-                        const label = formatPriorityLabel(item);
-                        priorities[label] = (priorities[label] || 0) + 1;
-                    });
-                }
-            });
-
-            if (Object.keys(priorities).length > 0) {
-                const sortedPriorities = Object.entries(priorities)
-                    .sort((a, b) => b[1] - a[1]);
-
-                chartInstances.priorities = new Chart(document.getElementById('prioritiesChart'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: sortedPriorities.map(p => p[0]),
-                        datasets: [{
-                            data: sortedPriorities.map(p => p[1]),
-                            backgroundColor: [
-                                '#667eea', '#764ba2', '#f093fb', '#4facfe',
-                                '#43e97b', '#fa709a', '#fee140', '#30cfd0'
-                            ],
-                            borderWidth: 2,
-                            borderColor: '#fff'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'right',
-                                labels: {
-                                    padding: 15,
-                                    font: { size: 12 }
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-
-            const responsesList = document.getElementById('responsesList');
-            responsesList.innerHTML = responses.map((r, i) => {
-                const timestamp = r.Timestamp || r.submittedAt || '';
-                const position = r.councilPosition || r['Council Position (Optional):'] || 'Not specified';
-                const tenure = r.tenure || r['Time on Students\' Union Council:'] || 'Not specified';
-                const satisfaction = r.satisfaction || r['Overall satisfaction with your Council experience:'] || 'N/A';
-                const challenges = r.roleDislikes || r['What aspects of your Council role do you find most challenging or frustrating?'] || '';
-                const achievements = r.achievements || r['What are your top 3 achievements in your Council role this year?'] || '';
-                const weaknesses = r.weaknesses || r['What leadership or portfolio-specific areas do you feel you need to improve or develop?'] || '';
-                const retreatGoals = r.retreatGoals || r['What do you hope to gain from this mandatory Council retreat?'] || '';
-                
-                return `
-                    <div class="response-card">
-                        <div class="response-header">
-                            <span><strong>Response #${i + 1}</strong></span>
-                            <span style="color: #888; font-size: 13px;">${timestamp ? new Date(timestamp).toLocaleString() : 'No date'}</span>
-                        </div>
-                        <div class="response-field"><strong>Position:</strong> ${position}</div>
-                        <div class="response-field"><strong>Tenure:</strong> ${tenure}</div>
-                        <div class="response-field"><strong>Satisfaction:</strong> ${satisfaction}/5</div>
-                        ${challenges ? `<div class="response-field"><strong>Main Challenges:</strong> ${challenges}</div>` : ''}
-                        ${achievements ? `<div class="response-field"><strong>Top Achievements:</strong> ${achievements}</div>` : ''}
-                        ${weaknesses ? `<div class="response-field"><strong>Areas for Improvement:</strong> ${weaknesses}</div>` : ''}
-                        ${retreatGoals ? `<div class="response-field"><strong>Retreat Goals:</strong> ${retreatGoals}</div>` : ''}
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function formatSupportLabel(value) {
-            const labels = {
-                'executive': 'Executive Board Guidance',
-                'peers': 'Peer Collaboration',
-                'university': 'University Support',
-                'financial': 'Financial Resources',
-                'office': 'Office Resources',
-                'training': 'Training & Development',
-                'time': 'Time Management',
-                'communication': 'Communication Channels'
-            };
-            return labels[value] || value;
-        }
-
-        function formatPriorityLabel(value) {
-            const labels = {
-                'team-building': 'Team Building',
-                'strategic-planning': 'Strategic Planning',
-                'skills-training': 'Skills Training',
-                'conflict-resolution': 'Conflict Resolution',
-                'constitution-review': 'Constitution Review',
-                'student-engagement': 'Student Engagement',
-                'wellness': 'Wellness & Self-Care'
-            };
-            return labels[value] || value;
-        }
+        });
     </script>
 </body>
 </html>
-

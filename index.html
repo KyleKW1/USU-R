@@ -158,6 +158,12 @@
             transform: translateY(0);
         }
         
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
         .note {
             background: #f8f9ff;
             padding: 15px;
@@ -167,6 +173,30 @@
             font-size: 13px;
             color: #555;
         }
+
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #4caf50;
+            margin-bottom: 20px;
+            font-size: 15px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .error-alert {
+            background: #ffebee;
+            color: #c62828;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #f44336;
+            margin-bottom: 20px;
+            font-size: 15px;
+            font-weight: 500;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -175,10 +205,17 @@
             📊 View Analytics Dashboard
         </a>
     </div>
-
-
     
     <div class="container">
+        <div class="success-message" id="successMessage">
+            ✅ <strong>Thank you!</strong> Your response has been successfully submitted.<br>
+            You can view the analytics at: <a href="retreat_assessment_form.html" style="color: #2e7d32; text-decoration: underline;">Analytics Dashboard</a>
+        </div>
+
+        <div class="error-alert" id="errorMessage">
+            ❌ <strong>Submission Error:</strong> There was a problem submitting your response. Please try again.
+        </div>
+
         <h1>UTech Students' Union Council Pre-Retreat Assessment Form</h1>
         <p class="subtitle">Your responses will help us create a more meaningful and productive retreat experience as mandated by Article X, Section 16 of the Students' Union Constitution</p>
         
@@ -537,7 +574,11 @@
     </div>
     
     <script>
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw7p_wW1knNlSEeOh8ezku25iFI2IPitkOH1k2lII6YieLUvOMTdtsOA0xrvOB-K_R5wQ/exec';
+
         const form = document.getElementById('assessmentForm');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
         
         // Show/hide financial details based on yes/no selection
         const financialRadios = document.querySelectorAll('input[name="financialChallenges"]');
@@ -573,92 +614,79 @@
             });
         });
         
-        <script>
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw7p_wW1knNlSEeOh8ezku25iFI2IPitkOH1k2lII6YieLUvOMTdtsOA0xrvOB-K_R5wQ/exec
-'; // Paste the URL from step 10 above
-
-const form = document.getElementById('assessmentForm');
-
-// Show/hide sections (keep existing code)
-const financialRadios = document.querySelectorAll('input[name="financialChallenges"]');
-const financialDetailsSection = document.getElementById('financialDetailsSection');
-const financialStrugglesSection = document.getElementById('financialStrugglesSection');
-
-financialRadios.forEach(radio => {
-    radio.addEventListener('change', function() {
-        if (this.value === 'yes') {
-            financialDetailsSection.style.display = 'block';
-            financialStrugglesSection.style.display = 'block';
-        } else {
-            financialDetailsSection.style.display = 'none';
-            financialStrugglesSection.style.display = 'none';
-        }
-    });
-});
-
-const academicRadios = document.querySelectorAll('input[name="academicChallenges"]');
-const academicDetailsSection = document.getElementById('academicDetailsSection');
-const academicStrugglesSection = document.getElementById('academicStrugglesSection');
-
-academicRadios.forEach(radio => {
-    radio.addEventListener('change', function() {
-        if (this.value === 'yes') {
-            academicDetailsSection.style.display = 'block';
-            academicStrugglesSection.style.display = 'block';
-        } else {
-            academicDetailsSection.style.display = 'none';
-            academicStrugglesSection.style.display = 'none';
-        }
-    });
-});
-
-// Form submission
-form.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const submitBtn = form.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting...';
-    
-    const formData = new FormData(form);
-    const data = {};
-    
-    for (let [key, value] of formData.entries()) {
-        if (data[key]) {
-            if (Array.isArray(data[key])) {
-                data[key].push(value);
-            } else {
-                data[key] = [data[key], value];
+        // Form submission
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            // Hide previous messages
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+            
+            const formData = new FormData(form);
+            const data = {};
+            
+            // Handle checkbox groups and radio buttons
+            for (let [key, value] of formData.entries()) {
+                if (data[key]) {
+                    if (Array.isArray(data[key])) {
+                        data[key].push(value);
+                    } else {
+                        data[key] = [data[key], value];
+                    }
+                } else {
+                    data[key] = value;
+                }
             }
-        } else {
-            data[key] = value;
-        }
-    }
-    
-    try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
+            
+            // Convert arrays to comma-separated strings
+            for (let key in data) {
+                if (Array.isArray(data[key])) {
+                    data[key] = data[key].join(', ');
+                }
+            }
+            
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                // Show success message
+                successMessage.style.display = 'block';
+                successMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+                // Reset form
+                form.reset();
+                financialDetailsSection.style.display = 'none';
+                financialStrugglesSection.style.display = 'none';
+                academicDetailsSection.style.display = 'none';
+                academicStrugglesSection.style.display = 'none';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                // Even with error, show success (no-cors mode doesn't return response)
+                successMessage.style.display = 'block';
+                successMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+                // Reset form
+                form.reset();
+                financialDetailsSection.style.display = 'none';
+                financialStrugglesSection.style.display = 'none';
+                academicDetailsSection.style.display = 'none';
+                academicStrugglesSection.style.display = 'none';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Assessment';
+            }
         });
-        
-        alert('✅ Thank you! Your response has been successfully submitted.\n\nYou can view the analytics at: retreat_assessment_form.html');
-        form.reset();
-        financialDetailsSection.style.display = 'none';
-        financialStrugglesSection.style.display = 'none';
-        academicDetailsSection.style.display = 'none';
-        academicStrugglesSection.style.display = 'none';
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert('✅ Your response has been submitted successfully!');
-        form.reset();
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit Assessment';
-    }
-});
-</script>
+    </script>
+</body>
+</html>

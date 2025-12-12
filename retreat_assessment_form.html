@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retreat Assessment Analyzer - Login</title>
+    <title>Retreat Assessment Analyzer</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -106,12 +106,103 @@
             text-align: left;
         }
         
-        /* Main App (hidden by default) */
-        .app-container {
+        /* Dashboard */
+        .dashboard {
             display: none;
+            max-width: 1400px;
+            margin: 0 auto;
         }
-        
-        /* Copy all your existing styles from the non-protected analyzer here */
+        .dashboard-header {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dashboard-title {
+            font-size: 32px;
+            color: #333;
+        }
+        .logout-btn {
+            padding: 12px 24px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        .chart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .chart-title {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .responses-list {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .response-card {
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #f8f9ff;
+            border-radius: 8px;
+        }
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+        .response-field {
+            margin-bottom: 15px;
+        }
+        .response-field strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -141,85 +232,250 @@
             <strong>🔐 Default Login Credentials:</strong><br><br>
             <strong>Username:</strong> <code style="background:#fff; padding:3px 8px; border-radius:4px;">admin</code><br>
             <strong>Password:</strong> <code style="background:#fff; padding:3px 8px; border-radius:4px;">UTech2024!</code><br><br>
-            <small>⚠️ Change these in the code for security</small>
+            <small>⚠️ Change these credentials for security</small>
         </div>
     </div>
 
-    <!-- Main Application -->
-    <div class="app-container" id="appContainer">
-        <iframe src="retreat_analyzer_core.html" style="width:100%; height:100vh; border:none;"></iframe>
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">📊 Retreat Assessment Analytics</h1>
+            <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+        </div>
+
+        <div id="loadingMessage" style="background: white; padding: 40px; text-align: center; border-radius: 12px; margin-bottom: 20px;">
+            Loading data...
+        </div>
+
+        <div id="dashboardContent" style="display: none;">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Responses</div>
+                    <div class="stat-value" id="totalResponses">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg. Satisfaction</div>
+                    <div class="stat-value" id="avgSatisfaction">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Financial Challenges</div>
+                    <div class="stat-value" id="financialChallenges">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Academic Difficulties</div>
+                    <div class="stat-value" id="academicDifficulties">0</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3 class="chart-title">Satisfaction Distribution</h3>
+                <canvas id="satisfactionChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <h3 class="chart-title">Support Needs</h3>
+                <canvas id="supportChart"></canvas>
+            </div>
+
+            <div class="responses-list">
+                <h3 class="chart-title">Individual Responses</h3>
+                <div id="responsesList"></div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // AUTHENTICATION SYSTEM
-        // ⚠️ IMPORTANT: Change these credentials!
+        // AUTHENTICATION
         const VALID_USERS = {
             'admin': 'UTech2024!',
-            // Add more users: 'username': 'password'
         };
 
         let isAuthenticated = false;
         let currentUser = null;
 
-        // Check if already logged in (session)
+        // Check session
         window.addEventListener('load', () => {
             const savedUser = sessionStorage.getItem('authUser');
             const authTime = sessionStorage.getItem('authTime');
             
-            // Session expires after 2 hours (7200000 ms)
             if (savedUser && authTime && (Date.now() - parseInt(authTime)) < 7200000) {
                 isAuthenticated = true;
                 currentUser = savedUser;
-                showApp();
+                showDashboard();
             }
         });
 
-        // Login form handler
+        // Login handler
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
             
-            // Check credentials
             if (VALID_USERS[username] && VALID_USERS[username] === password) {
-                // Successful login
                 isAuthenticated = true;
                 currentUser = username;
                 
-                // Save to session (expires when browser closes)
                 sessionStorage.setItem('authUser', username);
                 sessionStorage.setItem('authTime', Date.now().toString());
                 
-                showApp();
+                showDashboard();
             } else {
-                // Failed login
                 document.getElementById('errorMessage').style.display = 'block';
                 document.getElementById('password').value = '';
                 document.getElementById('password').focus();
             }
         });
 
-        function showApp() {
+        function showDashboard() {
             document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('appContainer').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'block';
+            loadData();
         }
 
-        function hideApp() {
-            document.getElementById('loginScreen').style.display = 'block';
-            document.getElementById('appContainer').style.display = 'none';
-            document.getElementById('loginForm').reset();
-            document.getElementById('errorMessage').style.display = 'none';
-        }
-
-        // Logout function (can be called from main app)
-        window.logout = function() {
+        function logout() {
             isAuthenticated = false;
             currentUser = null;
             sessionStorage.removeItem('authUser');
             sessionStorage.removeItem('authTime');
-            hideApp();
-        };
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('loginForm').reset();
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        // DATA LOADING AND ANALYSIS
+        async function loadData() {
+            try {
+                const keys = await window.storage.list('retreat_response:');
+                
+                if (!keys || !keys.keys || keys.keys.length === 0) {
+                    document.getElementById('loadingMessage').innerHTML = 
+                        '<div class="no-data">📭 No responses yet. Responses will appear here once the form is submitted.</div>';
+                    return;
+                }
+
+                const responses = [];
+                for (const key of keys.keys) {
+                    try {
+                        const result = await window.storage.get(key);
+                        if (result && result.value) {
+                            responses.push(JSON.parse(result.value));
+                        }
+                    } catch (e) {
+                        console.error('Error loading response:', e);
+                    }
+                }
+
+                if (responses.length === 0) {
+                    document.getElementById('loadingMessage').innerHTML = 
+                        '<div class="no-data">📭 No valid responses found.</div>';
+                    return;
+                }
+
+                displayAnalytics(responses);
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('loadingMessage').innerHTML = 
+                    '<div class="no-data">❌ Error loading data. Please refresh the page.</div>';
+            }
+        }
+
+        function displayAnalytics(responses) {
+            document.getElementById('loadingMessage').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'block';
+
+            // Stats
+            document.getElementById('totalResponses').textContent = responses.length;
+
+            const satisfactionScores = responses
+                .map(r => parseInt(r.satisfaction))
+                .filter(s => !isNaN(s));
+            const avgSat = satisfactionScores.length > 0 
+                ? (satisfactionScores.reduce((a, b) => a + b, 0) / satisfactionScores.length).toFixed(1)
+                : 'N/A';
+            document.getElementById('avgSatisfaction').textContent = avgSat;
+
+            const financialYes = responses.filter(r => r.financialChallenges === 'yes').length;
+            document.getElementById('financialChallenges').textContent = financialYes;
+
+            const academicYes = responses.filter(r => r.academicChallenges === 'yes').length;
+            document.getElementById('academicDifficulties').textContent = academicYes;
+
+            // Satisfaction Chart
+            const satCounts = [0, 0, 0, 0, 0];
+            satisfactionScores.forEach(score => {
+                if (score >= 1 && score <= 5) {
+                    satCounts[score - 1]++;
+                }
+            });
+
+            new Chart(document.getElementById('satisfactionChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Very Dissatisfied', 'Dissatisfied', 'Neutral', 'Satisfied', 'Very Satisfied'],
+                    datasets: [{
+                        label: 'Number of Responses',
+                        data: satCounts,
+                        backgroundColor: ['#f44336', '#ff9800', '#ffc107', '#8bc34a', '#4caf50']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
+
+            // Support Chart
+            const supportNeeds = {};
+            responses.forEach(r => {
+                const needs = Array.isArray(r.lackSupport) ? r.lackSupport : [r.lackSupport];
+                needs.forEach(need => {
+                    if (need) {
+                        supportNeeds[need] = (supportNeeds[need] || 0) + 1;
+                    }
+                });
+            });
+
+            new Chart(document.getElementById('supportChart'), {
+                type: 'horizontalBar',
+                data: {
+                    labels: Object.keys(supportNeeds),
+                    datasets: [{
+                        label: 'Number of Council Members',
+                        data: Object.values(supportNeeds),
+                        backgroundColor: '#667eea'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    indexAxis: 'y',
+                    scales: {
+                        x: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
+
+            // Responses List
+            const responsesList = document.getElementById('responsesList');
+            responsesList.innerHTML = responses.map((r, i) => `
+                <div class="response-card">
+                    <div class="response-header">
+                        <span>Response #${i + 1}</span>
+                        <span>${new Date(r.submittedAt).toLocaleString()}</span>
+                    </div>
+                    ${r.councilPosition ? `<div class="response-field"><strong>Position:</strong> ${r.councilPosition}</div>` : ''}
+                    ${r.tenure ? `<div class="response-field"><strong>Tenure:</strong> ${r.tenure}</div>` : ''}
+                    <div class="response-field"><strong>Satisfaction:</strong> ${r.satisfaction}/5</div>
+                    ${r.roleDislikes ? `<div class="response-field"><strong>Challenges:</strong> ${r.roleDislikes}</div>` : ''}
+                    ${r.achievements ? `<div class="response-field"><strong>Achievements:</strong> ${r.achievements}</div>` : ''}
+                    ${r.weaknesses ? `<div class="response-field"><strong>Areas for Improvement:</strong> ${r.weaknesses}</div>` : ''}
+                    ${r.retreatGoals ? `<div class="response-field"><strong>Retreat Goals:</strong> ${r.retreatGoals}</div>` : ''}
+                </div>
+            `).join('');
+        }
     </script>
 </body>
 </html>

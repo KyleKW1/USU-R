@@ -225,6 +225,15 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .debug-info {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 13px;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
@@ -315,7 +324,6 @@
     <script>
         const SHEET_ID = '1f5qAuW4s4pjwFtZTRr957lG8OjcTC95QNCwePn0yIso';
         const API_KEY = 'AIzaSyBsAGiypxxnSiTBbCWpXLHsoqWRDbZFltc';
-        const SHEET_NAME = 'Retreat-Assessment-Responses';
         
         const VALID_USERS = {
             'USU': 'UTech2024!@',
@@ -383,31 +391,55 @@
             document.getElementById('dashboardContent').style.display = 'none';
             
             try {
-                // Simple approach - just use the sheet name directly
-                let url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}`;
-                if (API_KEY) {
-                    url += `?key=${API_KEY}`;
-                }
-
-                const response = await fetch(url);
+                // Try to fetch all sheets first to find the correct sheet name
+                const sheetsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}?key=${API_KEY}`;
+                const sheetsResponse = await fetch(sheetsUrl);
                 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`HTTP ${response.status}: ${errorData.error?.message || response.statusText}`);
+                if (!sheetsResponse.ok) {
+                    throw new Error(`Cannot access spreadsheet: ${sheetsResponse.statusText}`);
                 }
-
-                const data = await response.json();
                 
-                if (!data.values || data.values.length < 2) {
+                const sheetsData = await sheetsResponse.json();
+                const sheets = sheetsData.sheets || [];
+                
+                console.log('Available sheets:', sheets.map(s => s.properties.title));
+                
+                // Try to find the first sheet with data
+                let foundData = null;
+                let sheetName = null;
+                
+                for (const sheet of sheets) {
+                    const name = sheet.properties.title;
+                    try {
+                        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(name)}?key=${API_KEY}`;
+                        const response = await fetch(url);
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.values && data.values.length > 1) {
+                                foundData = data;
+                                sheetName = name;
+                                break;
+                            }
+                        }
+                    } catch (e) {
+                        console.log(`Could not read sheet: ${name}`);
+                    }
+                }
+                
+                if (!foundData) {
                     document.getElementById('loadingMessage').innerHTML = 
                         '<div class="no-data">📭 <strong>No responses yet</strong><br><br>' +
-                        'The Google Sheet is empty or has no data rows.<br><br>' +
+                        'Available sheets: ' + sheets.map(s => s.properties.title).join(', ') + '<br><br>' +
+                        'Make sure you have submitted at least one form response.<br><br>' +
                         '<a href="index.html" style="color:#667eea; text-decoration:none; font-weight:600;">← Back to Form</a></div>';
                     return;
                 }
-
-                const headers = data.values[0];
-                const rows = data.values.slice(1);
+                
+                console.log(`Found data in sheet: ${sheetName}`);
+                
+                const headers = foundData.values[0];
+                const rows = foundData.values.slice(1);
                 
                 const responses = rows.map(row => {
                     const obj = {};
@@ -426,7 +458,9 @@
                     'Common issues:<br>' +
                     '• Google Sheets API not enabled<br>' +
                     '• API key lacks permissions<br>' +
-                    '• Sheet is private without proper access<br><br>' +
+                    '• Sheet ID is incorrect<br>' +
+                    '• Sheet is private<br><br>' +
+                    'Sheet ID: ' + SHEET_ID + '<br><br>' +
                     '<button onclick="loadData()" style="padding:10px 20px; background:#667eea; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600;">🔄 Retry</button></div>';
             }
         }
@@ -441,17 +475,23 @@
             document.getElementById('totalResponses').textContent = responses.length;
 
             const satisfactionScores = responses
-                .map(r => parseInt(r.satisfaction || r['satisfaction']))
+                .map(r => parseInt(r.satisfaction || r['Overall satisfaction with your Council experience:']))
                 .filter(s => !isNaN(s));
             const avgSat = satisfactionScores.length > 0 
                 ? (satisfactionScores.reduce((a, b) => a + b, 0) / satisfactionScores.length).toFixed(1)
                 : 'N/A';
             document.getElementById('avgSatisfaction').textContent = avgSat;
 
-            const financialYes = responses.filter(r => (r.financialChallenges || r['financialChallenges']) === 'yes').length;
+            const financialYes = responses.filter(r => {
+                const val = r.financialChallenges || r['Are you facing financial challenges?'];
+                return val && val.toLowerCase().includes('yes');
+            }).length;
             document.getElementById('financialChallenges').textContent = `${financialYes} (${((financialYes/responses.length)*100).toFixed(0)}%)`;
 
-            const academicYes = responses.filter(r => (r.academicChallenges || r['academicChallenges']) === 'yes').length;
+            const academicYes = responses.filter(r => {
+                const val = r.academicChallenges || r['Are you experiencing academic difficulties?'];
+                return val && val.toLowerCase().includes('yes');
+            }).length;
             document.getElementById('academicDifficulties').textContent = `${academicYes} (${((academicYes/responses.length)*100).toFixed(0)}%)`;
 
             const satCounts = [0, 0, 0, 0, 0];
@@ -489,7 +529,7 @@
 
             const supportNeeds = {};
             responses.forEach(r => {
-                const field = r.lackSupport || r['lackSupport'] || '';
+                const field = r.lackSupport || r['Select areas where you feel you lack adequate support:'] || '';
                 if (field) {
                     const needs = field.split(',').map(n => n.trim()).filter(n => n);
                     needs.forEach(need => {
@@ -534,7 +574,7 @@
 
             const priorities = {};
             responses.forEach(r => {
-                const field = r.retreatPriorities || r['retreatPriorities'] || '';
+                const field = r.retreatPriorities || r['Which areas should the retreat prioritize? (Select up to 3)'] || '';
                 if (field) {
                     const items = field.split(',').map(n => n.trim()).filter(n => n);
                     items.forEach(item => {
@@ -581,9 +621,13 @@
             const responsesList = document.getElementById('responsesList');
             responsesList.innerHTML = responses.map((r, i) => {
                 const timestamp = r.Timestamp || r.submittedAt || '';
-                const position = r.councilPosition || 'Not specified';
-                const tenure = r.tenure || 'Not specified';
-                const satisfaction = r.satisfaction || 'N/A';
+                const position = r.councilPosition || r['Council Position (Optional):'] || 'Not specified';
+                const tenure = r.tenure || r['Time on Students\' Union Council:'] || 'Not specified';
+                const satisfaction = r.satisfaction || r['Overall satisfaction with your Council experience:'] || 'N/A';
+                const challenges = r.roleDislikes || r['What aspects of your Council role do you find most challenging or frustrating?'] || '';
+                const achievements = r.achievements || r['What are your top 3 achievements in your Council role this year?'] || '';
+                const weaknesses = r.weaknesses || r['What leadership or portfolio-specific areas do you feel you need to improve or develop?'] || '';
+                const retreatGoals = r.retreatGoals || r['What do you hope to gain from this mandatory Council retreat?'] || '';
                 
                 return `
                     <div class="response-card">
@@ -594,10 +638,10 @@
                         <div class="response-field"><strong>Position:</strong> ${position}</div>
                         <div class="response-field"><strong>Tenure:</strong> ${tenure}</div>
                         <div class="response-field"><strong>Satisfaction:</strong> ${satisfaction}/5</div>
-                        ${r.roleDislikes ? `<div class="response-field"><strong>Main Challenges:</strong> ${r.roleDislikes}</div>` : ''}
-                        ${r.achievements ? `<div class="response-field"><strong>Top Achievements:</strong> ${r.achievements}</div>` : ''}
-                        ${r.weaknesses ? `<div class="response-field"><strong>Areas for Improvement:</strong> ${r.weaknesses}</div>` : ''}
-                        ${r.retreatGoals ? `<div class="response-field"><strong>Retreat Goals:</strong> ${r.retreatGoals}</div>` : ''}
+                        ${challenges ? `<div class="response-field"><strong>Main Challenges:</strong> ${challenges}</div>` : ''}
+                        ${achievements ? `<div class="response-field"><strong>Top Achievements:</strong> ${achievements}</div>` : ''}
+                        ${weaknesses ? `<div class="response-field"><strong>Areas for Improvement:</strong> ${weaknesses}</div>` : ''}
+                        ${retreatGoals ? `<div class="response-field"><strong>Retreat Goals:</strong> ${retreatGoals}</div>` : ''}
                     </div>
                 `;
             }).join('');

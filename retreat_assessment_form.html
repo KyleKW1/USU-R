@@ -223,15 +223,23 @@
 
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            console.log('Login form submitted');
+            
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
             
+            console.log('Username entered:', username);
+            console.log('Valid users:', Object.keys(VALID_USERS));
+            console.log('Password match:', VALID_USERS[username] === password);
+            
             if (VALID_USERS[username] && VALID_USERS[username] === password) {
+                console.log('Login successful!');
                 sessionStorage.setItem('authUser', username);
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('dashboard').style.display = 'block';
                 loadData();
             } else {
+                console.log('Login failed');
                 document.getElementById('errorMessage').style.display = 'block';
             }
         });

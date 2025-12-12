@@ -383,9 +383,8 @@
             document.getElementById('dashboardContent').style.display = 'none';
             
             try {
-                // Use A1 notation to get all data from the sheet
-                const range = `'${SHEET_NAME}'!A:Z`;
-                let url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(range)}`;
+                // Simple approach - just use the sheet name directly
+                let url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}`;
                 if (API_KEY) {
                     url += `?key=${API_KEY}`;
                 }

@@ -383,9 +383,9 @@
             document.getElementById('dashboardContent').style.display = 'none';
             
             try {
-                // Encode the sheet name to handle spaces and special characters
-                const encodedSheetName = encodeURIComponent(SHEET_NAME);
-                let url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodedSheetName}`;
+                // Use A1 notation to get all data from the sheet
+                const range = `'${SHEET_NAME}'!A:Z`;
+                let url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(range)}`;
                 if (API_KEY) {
                     url += `?key=${API_KEY}`;
                 }

@@ -95,16 +95,6 @@
             font-size: 14px;
             display: none;
         }
-        .info-box {
-            background: #f0f4ff;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            font-size: 12px;
-            color: #555;
-            border-left: 4px solid #667eea;
-            text-align: left;
-        }
         
         /* Dashboard */
         .dashboard {
@@ -203,6 +193,14 @@
             padding: 60px 20px;
             color: #666;
         }
+        .setup-notice {
+            background: #fff3cd;
+            color: #856404;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ffc107;
+        }
     </style>
 </head>
 <body>
@@ -227,15 +225,6 @@
             </div>
             <button type="submit" class="login-button">🔓 Login to Dashboard</button>
         </form>
-        
-        <div class="info-box">
-            <strong>🔐 Login Credentials:</strong><br><br>
-            <strong>Username:</strong> <code style="background:#fff; padding:3px 8px; border-radius:4px;">X-X</code><br>
-            <strong>Password:</strong> <code style="background:#fff; padding:3px 8px; border-radius:4px;">X-X</code><br><br>
-            <button onclick="sessionStorage.clear(); location.reload();" style="margin-top:10px; padding:8px 16px; background:#f44336; color:white; border:none; border-radius:6px; cursor:pointer; font-size:12px;">
-                🔄 Clear Session
-            </button>
-        </div>
     </div>
 
     <!-- Dashboard -->
@@ -245,8 +234,13 @@
             <button class="logout-btn" onclick="logout()">🚪 Logout</button>
         </div>
 
+        <div class="setup-notice" id="setupNotice">
+            <strong>⚙️ Setup Required:</strong> Configure your Google Sheet ID and API key in the code below. 
+            See the setup instructions at the bottom of the page.
+        </div>
+
         <div id="loadingMessage" style="background: white; padding: 40px; text-align: center; border-radius: 12px; margin-bottom: 20px;">
-            Loading data...
+            Loading data from Google Sheets...
         </div>
 
         <div id="dashboardContent" style="display: none;">
@@ -284,18 +278,65 @@
                 <div id="responsesList"></div>
             </div>
         </div>
+
+        <!-- Setup Instructions -->
+        <div style="margin-top: 60px; padding: 30px; background: white; border-radius: 12px;">
+            <h2 style="color: #333; margin-bottom: 20px;">📋 Google Sheets API Setup</h2>
+            
+            <h3 style="color: #667eea; margin-top: 20px; margin-bottom: 10px;">Option 1: Simple Public Sheet (Recommended)</h3>
+            <ol style="margin-left: 20px; line-height: 1.8; color: #555;">
+                <li>Make your Google Sheet public: <strong>Share → Anyone with the link can view</strong></li>
+                <li>Copy your Sheet ID from the URL: 
+                    <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px;">docs.google.com/spreadsheets/d/<strong>SHEET_ID</strong>/edit</code>
+                </li>
+                <li>Update the <code>SHEET_ID</code> variable in the JavaScript below</li>
+            </ol>
+
+            <h3 style="color: #667eea; margin-top: 20px; margin-bottom: 10px;">Option 2: Private Sheet with API Key</h3>
+            <ol style="margin-left: 20px; line-height: 1.8; color: #555;">
+                <li>Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
+                <li>Create a new project or select an existing one</li>
+                <li>Enable the <strong>Google Sheets API</strong></li>
+                <li>Go to <strong>Credentials → Create Credentials → API Key</strong></li>
+                <li>Copy the API key and update the <code>API_KEY</code> variable below</li>
+                <li>Add API key restrictions (optional but recommended)</li>
+            </ol>
+
+            <div style="background: #f0f4ff; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 4px solid #667eea;">
+                <strong>💡 Current Configuration:</strong><br>
+                <code style="background: #fff; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-top: 5px;">
+                    Sheet ID: <span id="currentSheetId" style="color: #667eea;">Not configured</span>
+                </code>
+            </div>
+        </div>
     </div>
 
     <script>
-        // AUTHENTICATION
+        // =====================================================
+        // 🔧 CONFIGURATION - UPDATE THESE VALUES
+        // =====================================================
+        
+        // Your Google Sheet ID (from the URL)
+        const SHEET_ID = 'YOUR_SHEET_ID_HERE';
+        
+        // Your Google API Key (optional - only needed for private sheets)
+        const API_KEY = ''; // Leave empty if using public sheet
+        
+        // Sheet name/tab (usually 'Sheet1')
+        const SHEET_NAME = 'Sheet1';
+        
+        // Login credentials (change these!)
         const VALID_USERS = {
             'USU': 'UTech2024!@',
         };
-
+        
+        // =====================================================
+        // AUTHENTICATION
+        // =====================================================
+        
         let isAuthenticated = false;
         let currentUser = null;
 
-        // Check session
         window.addEventListener('load', () => {
             const savedUser = sessionStorage.getItem('authUser');
             const authTime = sessionStorage.getItem('authTime');
@@ -305,9 +346,12 @@
                 currentUser = savedUser;
                 showDashboard();
             }
+
+            // Show current config
+            document.getElementById('currentSheetId').textContent = 
+                SHEET_ID === 'YOUR_SHEET_ID_HERE' ? 'Not configured' : SHEET_ID;
         });
 
-        // Login handler
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -346,40 +390,67 @@
             document.getElementById('errorMessage').style.display = 'none';
         }
 
-        // DATA LOADING AND ANALYSIS
+        // =====================================================
+        // DATA LOADING FROM GOOGLE SHEETS
+        // =====================================================
+        
         async function loadData() {
             try {
-                const keys = await window.storage.list('retreat_response:');
+                if (SHEET_ID === 'YOUR_SHEET_ID_HERE') {
+                    document.getElementById('setupNotice').style.display = 'block';
+                    document.getElementById('loadingMessage').innerHTML = 
+                        '<div class="no-data">⚠️ <strong>Google Sheet not configured</strong><br><br>' +
+                        'Please update the SHEET_ID in the code. See setup instructions below.</div>';
+                    return;
+                }
+
+                document.getElementById('setupNotice').style.display = 'none';
+
+                // Build the API URL
+                let url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}`;
+                if (API_KEY) {
+                    url += `?key=${API_KEY}`;
+                }
+
+                const response = await fetch(url);
                 
-                if (!keys || !keys.keys || keys.keys.length === 0) {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                if (!data.values || data.values.length < 2) {
                     document.getElementById('loadingMessage').innerHTML = 
-                        '<div class="no-data">📭 No responses yet. Responses will appear here once the form is submitted.</div>';
+                        '<div class="no-data">📭 <strong>No responses yet</strong><br><br>' +
+                        'The Google Sheet is empty or has no data rows.<br><br>' +
+                        '<a href="index.html" style="color:#667eea; text-decoration:none; font-weight:600;">← Back to Form</a></div>';
                     return;
                 }
 
-                const responses = [];
-                for (const key of keys.keys) {
-                    try {
-                        const result = await window.storage.get(key);
-                        if (result && result.value) {
-                            responses.push(JSON.parse(result.value));
-                        }
-                    } catch (e) {
-                        console.error('Error loading response:', e);
-                    }
-                }
-
-                if (responses.length === 0) {
-                    document.getElementById('loadingMessage').innerHTML = 
-                        '<div class="no-data">📭 No valid responses found.</div>';
-                    return;
-                }
+                // Parse the data
+                const headers = data.values[0];
+                const rows = data.values.slice(1);
+                
+                const responses = rows.map(row => {
+                    const obj = {};
+                    headers.forEach((header, index) => {
+                        obj[header] = row[index] || '';
+                    });
+                    return obj;
+                });
 
                 displayAnalytics(responses);
             } catch (error) {
                 console.error('Error loading data:', error);
                 document.getElementById('loadingMessage').innerHTML = 
-                    '<div class="no-data">❌ Error loading data. Please refresh the page.</div>';
+                    '<div class="no-data">❌ <strong>Error loading data</strong><br><br>' + 
+                    error.message + '<br><br>' +
+                    'Make sure:<br>' +
+                    '• Your Sheet ID is correct<br>' +
+                    '• The sheet is public or you have a valid API key<br>' +
+                    '• The sheet name matches (default: Sheet1)<br><br>' +
+                    '<button onclick="loadData()" style="padding:10px 20px; background:#667eea; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600;">🔄 Retry</button></div>';
             }
         }
 
@@ -433,32 +504,33 @@
             // Support Chart
             const supportNeeds = {};
             responses.forEach(r => {
-                const needs = Array.isArray(r.lackSupport) ? r.lackSupport : [r.lackSupport];
+                const lacksupport = r.lackSupport || '';
+                const needs = lacksupport.split(',').map(n => n.trim()).filter(n => n);
                 needs.forEach(need => {
-                    if (need) {
-                        supportNeeds[need] = (supportNeeds[need] || 0) + 1;
-                    }
+                    supportNeeds[need] = (supportNeeds[need] || 0) + 1;
                 });
             });
 
-            new Chart(document.getElementById('supportChart'), {
-                type: 'horizontalBar',
-                data: {
-                    labels: Object.keys(supportNeeds),
-                    datasets: [{
-                        label: 'Number of Council Members',
-                        data: Object.values(supportNeeds),
-                        backgroundColor: '#667eea'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    indexAxis: 'y',
-                    scales: {
-                        x: { beginAtZero: true, ticks: { stepSize: 1 } }
+            if (Object.keys(supportNeeds).length > 0) {
+                new Chart(document.getElementById('supportChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(supportNeeds),
+                        datasets: [{
+                            label: 'Number of Council Members',
+                            data: Object.values(supportNeeds),
+                            backgroundColor: '#667eea'
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        scales: {
+                            x: { beginAtZero: true, ticks: { stepSize: 1 } }
+                        }
                     }
-                }
-            });
+                });
+            }
 
             // Responses List
             const responsesList = document.getElementById('responsesList');
@@ -466,11 +538,11 @@
                 <div class="response-card">
                     <div class="response-header">
                         <span>Response #${i + 1}</span>
-                        <span>${new Date(r.submittedAt).toLocaleString()}</span>
+                        <span>${r.submittedAt ? new Date(r.submittedAt).toLocaleString() : ''}</span>
                     </div>
                     ${r.councilPosition ? `<div class="response-field"><strong>Position:</strong> ${r.councilPosition}</div>` : ''}
                     ${r.tenure ? `<div class="response-field"><strong>Tenure:</strong> ${r.tenure}</div>` : ''}
-                    <div class="response-field"><strong>Satisfaction:</strong> ${r.satisfaction}/5</div>
+                    ${r.satisfaction ? `<div class="response-field"><strong>Satisfaction:</strong> ${r.satisfaction}/5</div>` : ''}
                     ${r.roleDislikes ? `<div class="response-field"><strong>Challenges:</strong> ${r.roleDislikes}</div>` : ''}
                     ${r.achievements ? `<div class="response-field"><strong>Achievements:</strong> ${r.achievements}</div>` : ''}
                     ${r.weaknesses ? `<div class="response-field"><strong>Areas for Improvement:</strong> ${r.weaknesses}</div>` : ''}

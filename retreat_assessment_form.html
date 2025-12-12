@@ -14,7 +14,6 @@
             min-height: 100vh;
         }
         
-        /* Login Screen */
         .login-container {
             max-width: 450px;
             margin: 100px auto;
@@ -96,7 +95,6 @@
             display: none;
         }
         
-        /* Dashboard */
         .dashboard {
             display: none;
             max-width: 1400px;
@@ -214,14 +212,6 @@
             padding: 60px 20px;
             color: #666;
         }
-        .setup-notice {
-            background: #fff3cd;
-            color: #856404;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border-left: 4px solid #ffc107;
-        }
         .loading-spinner {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #667eea;
@@ -238,7 +228,6 @@
     </style>
 </head>
 <body>
-    <!-- Login Screen -->
     <div class="login-container" id="loginScreen">
         <div class="login-logo">🔒</div>
         <h1 class="login-title">Authorized Access Only</h1>
@@ -261,7 +250,6 @@
         </form>
     </div>
 
-    <!-- Dashboard -->
     <div class="dashboard" id="dashboard">
         <div class="dashboard-header">
             <h1 class="dashboard-title">📊 Retreat Assessment Analytics</h1>
@@ -325,10 +313,6 @@
     </div>
 
     <script>
-        // =====================================================
-        // 🔧 CONFIGURATION
-        // =====================================================
-        
         const SHEET_ID = '1bnZVXn_K6YW-49tskwHqazHZLwCvTkALSE8ZJp1TATu0VEKKAUcMTNWA';
         const API_KEY = 'AIzaSyBsAGiypxxnSiTBbCWpXLHsoqWRDbZFltc';
         const SHEET_NAME = 'Sheet1';
@@ -336,10 +320,6 @@
         const VALID_USERS = {
             'USU': 'UTech2024!@',
         };
-        
-        // =====================================================
-        // AUTHENTICATION
-        // =====================================================
         
         let isAuthenticated = false;
         let currentUser = null;
@@ -389,7 +369,6 @@
             sessionStorage.removeItem('authUser');
             sessionStorage.removeItem('authTime');
             
-            // Destroy charts
             Object.values(chartInstances).forEach(chart => chart.destroy());
             chartInstances = {};
             
@@ -399,10 +378,6 @@
             document.getElementById('errorMessage').style.display = 'none';
         }
 
-        // =====================================================
-        // DATA LOADING FROM GOOGLE SHEETS
-        // =====================================================
-        
         async function loadData() {
             document.getElementById('loadingMessage').style.display = 'block';
             document.getElementById('dashboardContent').style.display = 'none';
@@ -447,11 +422,10 @@
                 document.getElementById('loadingMessage').innerHTML = 
                     '<div class="no-data">❌ <strong>Error loading data</strong><br><br>' + 
                     error.message + '<br><br>' +
-                    'Make sure:<br>' +
-                    '• Your Sheet ID is correct<br>' +
-                    '• The Google Sheets API is enabled<br>' +
-                    '• The API key has proper permissions<br>' +
-                    '• The sheet name matches (default: Sheet1)<br><br>' +
+                    'Common issues:<br>' +
+                    '• Google Sheets API not enabled<br>' +
+                    '• API key lacks permissions<br>' +
+                    '• Sheet is private without proper access<br><br>' +
                     '<button onclick="loadData()" style="padding:10px 20px; background:#667eea; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600;">🔄 Retry</button></div>';
             }
         }
@@ -460,28 +434,25 @@
             document.getElementById('loadingMessage').style.display = 'none';
             document.getElementById('dashboardContent').style.display = 'block';
 
-            // Destroy existing charts
             Object.values(chartInstances).forEach(chart => chart.destroy());
             chartInstances = {};
 
-            // Calculate Stats
             document.getElementById('totalResponses').textContent = responses.length;
 
             const satisfactionScores = responses
-                .map(r => parseInt(r.satisfaction))
+                .map(r => parseInt(r.satisfaction || r['satisfaction']))
                 .filter(s => !isNaN(s));
             const avgSat = satisfactionScores.length > 0 
                 ? (satisfactionScores.reduce((a, b) => a + b, 0) / satisfactionScores.length).toFixed(1)
                 : 'N/A';
             document.getElementById('avgSatisfaction').textContent = avgSat;
 
-            const financialYes = responses.filter(r => r.financialChallenges === 'yes').length;
+            const financialYes = responses.filter(r => (r.financialChallenges || r['financialChallenges']) === 'yes').length;
             document.getElementById('financialChallenges').textContent = `${financialYes} (${((financialYes/responses.length)*100).toFixed(0)}%)`;
 
-            const academicYes = responses.filter(r => r.academicChallenges === 'yes').length;
+            const academicYes = responses.filter(r => (r.academicChallenges || r['academicChallenges']) === 'yes').length;
             document.getElementById('academicDifficulties').textContent = `${academicYes} (${((academicYes/responses.length)*100).toFixed(0)}%)`;
 
-            // Satisfaction Chart
             const satCounts = [0, 0, 0, 0, 0];
             satisfactionScores.forEach(score => {
                 if (score >= 1 && score <= 5) {
@@ -515,10 +486,9 @@
                 }
             });
 
-            // Support Needs Chart
             const supportNeeds = {};
             responses.forEach(r => {
-                const field = r.lackSupport || r['lackSupport[]'] || '';
+                const field = r.lackSupport || r['lackSupport'] || '';
                 if (field) {
                     const needs = field.split(',').map(n => n.trim()).filter(n => n);
                     needs.forEach(need => {
@@ -538,7 +508,7 @@
                     data: {
                         labels: sortedSupport.map(s => s[0]),
                         datasets: [{
-                            label: 'Number of Council Members',
+                            label: 'Council Members',
                             data: sortedSupport.map(s => s[1]),
                             backgroundColor: '#667eea',
                             borderRadius: 6
@@ -561,10 +531,9 @@
                 });
             }
 
-            // Retreat Priorities Chart
             const priorities = {};
             responses.forEach(r => {
-                const field = r.retreatPriorities || r['retreatPriorities[]'] || '';
+                const field = r.retreatPriorities || r['retreatPriorities'] || '';
                 if (field) {
                     const items = field.split(',').map(n => n.trim()).filter(n => n);
                     items.forEach(item => {
@@ -608,13 +577,12 @@
                 });
             }
 
-            // Display Individual Responses
             const responsesList = document.getElementById('responsesList');
             responsesList.innerHTML = responses.map((r, i) => {
                 const timestamp = r.Timestamp || r.submittedAt || '';
-                const position = r.councilPosition || r['Council Position'] || 'Not specified';
-                const tenure = r.tenure || r['Time on Students\' Union Council'] || 'Not specified';
-                const satisfaction = r.satisfaction || r['Overall satisfaction with your Council experience'] || 'N/A';
+                const position = r.councilPosition || 'Not specified';
+                const tenure = r.tenure || 'Not specified';
+                const satisfaction = r.satisfaction || 'N/A';
                 
                 return `
                     <div class="response-card">

@@ -208,6 +208,42 @@
                 </div>
             </div>
 
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                <div class="chart-container">
+                    <h3>Council Tenure</h3>
+                    <div class="chart-wrapper" style="height: 300px;">
+                        <canvas id="tenureChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h3>Constitution Knowledge</h3>
+                    <div class="chart-wrapper" style="height: 300px;">
+                        <canvas id="constitutionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3>Areas Lacking Support (Top Issues)</h3>
+                <div class="chart-wrapper">
+                    <canvas id="supportChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3>Retreat Priorities (Top Selections)</h3>
+                <div class="chart-wrapper">
+                    <canvas id="prioritiesChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3>Support Needs Requested</h3>
+                <div class="chart-wrapper">
+                    <canvas id="supportNeedsChart"></canvas>
+                </div>
+            </div>
+
             <div class="responses-list">
                 <h3>Individual Responses</h3>
                 <div id="responsesList"></div>
@@ -395,6 +431,189 @@
                     maintainAspectRatio: false,
                     scales: {
                         y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // Tenure Analysis
+            const tenureCol = findColumn(['tenure']);
+            const tenureCounts = {};
+            responses.forEach(r => {
+                const tenure = r[tenureCol] || 'Not specified';
+                tenureCounts[tenure] = (tenureCounts[tenure] || 0) + 1;
+            });
+
+            chartInstances.tenure = new Chart(document.getElementById('tenureChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(tenureCounts),
+                    datasets: [{
+                        data: Object.values(tenureCounts),
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // Constitution Knowledge
+            const constitutionCol = findColumn(['constitution']);
+            const constitutionCounts = {};
+            responses.forEach(r => {
+                const knowledge = r[constitutionCol] || 'Not specified';
+                if (knowledge.trim()) {
+                    constitutionCounts[knowledge] = (constitutionCounts[knowledge] || 0) + 1;
+                }
+            });
+
+            chartInstances.constitution = new Chart(document.getElementById('constitutionChart'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(constitutionCounts),
+                    datasets: [{
+                        label: 'Responses',
+                        data: Object.values(constitutionCounts),
+                        backgroundColor: '#667eea'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // Lack of Support Analysis
+            const lackSupportCol = findColumn(['lackSupport', 'support']);
+            const supportIssues = {};
+            responses.forEach(r => {
+                const issues = r[lackSupportCol] || '';
+                if (issues) {
+                    issues.split(',').forEach(issue => {
+                        const trimmed = issue.trim();
+                        if (trimmed) {
+                            supportIssues[trimmed] = (supportIssues[trimmed] || 0) + 1;
+                        }
+                    });
+                }
+            });
+
+            const sortedSupport = Object.entries(supportIssues)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 8);
+
+            chartInstances.support = new Chart(document.getElementById('supportChart'), {
+                type: 'bar',
+                data: {
+                    labels: sortedSupport.map(s => s[0]),
+                    datasets: [{
+                        label: 'Number of Members',
+                        data: sortedSupport.map(s => s[1]),
+                        backgroundColor: '#f44336'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // Retreat Priorities
+            const prioritiesCol = findColumn(['priorities', 'retreat']);
+            const priorities = {};
+            responses.forEach(r => {
+                const priors = r[prioritiesCol] || '';
+                if (priors) {
+                    priors.split(',').forEach(priority => {
+                        const trimmed = priority.trim();
+                        if (trimmed) {
+                            priorities[trimmed] = (priorities[trimmed] || 0) + 1;
+                        }
+                    });
+                }
+            });
+
+            const sortedPriorities = Object.entries(priorities)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 7);
+
+            chartInstances.priorities = new Chart(document.getElementById('prioritiesChart'), {
+                type: 'bar',
+                data: {
+                    labels: sortedPriorities.map(p => p[0]),
+                    datasets: [{
+                        label: 'Number of Selections',
+                        data: sortedPriorities.map(p => p[1]),
+                        backgroundColor: '#4caf50'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // Support Needs
+            const supportNeedsCol = findColumn(['supportNeeds', 'needs']);
+            const needs = {};
+            responses.forEach(r => {
+                const needsStr = r[supportNeedsCol] || '';
+                if (needsStr) {
+                    needsStr.split(',').forEach(need => {
+                        const trimmed = need.trim();
+                        if (trimmed) {
+                            needs[trimmed] = (needs[trimmed] || 0) + 1;
+                        }
+                    });
+                }
+            });
+
+            const sortedNeeds = Object.entries(needs)
+                .sort((a, b) => b[1] - a[1]);
+
+            chartInstances.supportNeeds = new Chart(document.getElementById('supportNeedsChart'), {
+                type: 'bar',
+                data: {
+                    labels: sortedNeeds.map(n => n[0]),
+                    datasets: [{
+                        label: 'Number of Requests',
+                        data: sortedNeeds.map(n => n[1]),
+                        backgroundColor: '#764ba2'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: { beginAtZero: true, ticks: { stepSize: 1 } }
                     },
                     plugins: {
                         legend: { display: false }

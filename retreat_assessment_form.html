@@ -60,6 +60,9 @@
             font-weight: 600;
             cursor: pointer;
         }
+        .login-button:hover {
+            opacity: 0.9;
+        }
         .error-message {
             background: #fee;
             color: #c33;
@@ -151,18 +154,17 @@
     <div class="login-container" id="loginScreen">
         <div class="login-logo">🔒</div>
         <h1>Analytics Login</h1>
+        <p style="margin: 20px 0; color: #666;">Username: <strong>USU</strong><br>Password: <strong>UTech2024!@</strong></p>
         <div class="error-message" id="errorMessage">Incorrect credentials</div>
-        <form class="login-form" id="loginForm">
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" id="username" required>
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="password" required>
-            </div>
-            <button type="submit" class="login-button">Login</button>
-        </form>
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="username" value="">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="password" value="">
+        </div>
+        <button type="button" class="login-button" onclick="handleLogin()">Login</button>
     </div>
 
     <div class="dashboard" id="dashboard">
@@ -221,48 +223,67 @@
         
         let chartInstances = {};
 
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            console.log('Login form submitted');
-            
+        // Handle Enter key
+        document.getElementById('username').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') handleLogin();
+        });
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') handleLogin();
+        });
+
+        function handleLogin() {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
             
-            console.log('Username entered:', username);
-            console.log('Valid users:', Object.keys(VALID_USERS));
-            console.log('Password match:', VALID_USERS[username] === password);
+            console.log('Attempting login...');
+            console.log('Username:', username);
+            console.log('Password length:', password.length);
             
-            if (VALID_USERS[username] && VALID_USERS[username] === password) {
-                console.log('Login successful!');
-                sessionStorage.setItem('authUser', username);
+            if (username === 'USU' && password === 'UTech2024!@') {
+                console.log('Login SUCCESS');
+                try {
+                    sessionStorage.setItem('authUser', username);
+                } catch(e) {
+                    console.log('SessionStorage not available, continuing anyway');
+                }
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('dashboard').style.display = 'block';
+                document.getElementById('errorMessage').style.display = 'none';
                 loadData();
             } else {
-                console.log('Login failed');
+                console.log('Login FAILED');
                 document.getElementById('errorMessage').style.display = 'block';
             }
-        });
+        }
 
-        window.addEventListener('load', () => {
-            if (sessionStorage.getItem('authUser')) {
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-                loadData();
+        window.addEventListener('load', function() {
+            try {
+                if (sessionStorage.getItem('authUser')) {
+                    document.getElementById('loginScreen').style.display = 'none';
+                    document.getElementById('dashboard').style.display = 'block';
+                    loadData();
+                }
+            } catch(e) {
+                console.log('SessionStorage check failed');
             }
         });
 
         function logout() {
-            sessionStorage.removeItem('authUser');
+            try {
+                sessionStorage.removeItem('authUser');
+            } catch(e) {}
             location.reload();
         }
 
         async function loadData() {
+            console.log('Loading data...');
             document.getElementById('loadingMessage').style.display = 'block';
             document.getElementById('dashboardContent').style.display = 'none';
             
             try {
                 const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?key=${API_KEY}`;
+                console.log('Fetching:', url);
+                
                 const response = await fetch(url);
                 
                 if (!response.ok) {
@@ -270,6 +291,7 @@
                 }
 
                 const data = await response.json();
+                console.log('Data received:', data);
                 
                 if (!data.values || data.values.length < 2) {
                     document.getElementById('loadingMessage').innerHTML = 
@@ -292,20 +314,18 @@
 
                 console.log('Headers:', headers);
                 console.log('Total responses:', responses.length);
-                if (responses.length > 0) {
-                    console.log('First response:', responses[0]);
-                }
 
                 displayAnalytics(responses, headers);
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error loading data:', error);
                 document.getElementById('loadingMessage').innerHTML = 
-                    `<p style="padding: 40px; text-align: center; color: red;">Error loading data: ${error.message}<br><br>
+                    `<p style="padding: 40px; text-align: center; color: red;">Error: ${error.message}<br><br>
                     <button onclick="loadData()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer;">Retry</button></p>`;
             }
         }
 
         function displayAnalytics(responses, headers) {
+            console.log('Displaying analytics...');
             document.getElementById('loadingMessage').style.display = 'none';
             document.getElementById('dashboardContent').style.display = 'block';
 
@@ -314,7 +334,6 @@
 
             document.getElementById('totalResponses').textContent = responses.length;
 
-            // Find columns dynamically
             const findColumn = (patterns) => {
                 for (let pattern of patterns) {
                     const col = headers.find(h => h && h.toLowerCase().includes(pattern.toLowerCase()));
@@ -323,11 +342,12 @@
                 return null;
             };
 
-            const satisfactionCol = findColumn(['satisfaction', 'rating']);
+            const satisfactionCol = findColumn(['satisfaction']);
             const financialCol = findColumn(['financial']);
             const academicCol = findColumn(['academic']);
             
-            // Calculate satisfaction
+            console.log('Found columns:', { satisfactionCol, financialCol, academicCol });
+
             const satisfactionScores = responses
                 .map(r => parseInt(r[satisfactionCol]))
                 .filter(s => !isNaN(s) && s >= 1 && s <= 5);
@@ -337,7 +357,6 @@
                 : 'N/A';
             document.getElementById('avgSatisfaction').textContent = avgSat;
 
-            // Financial challenges
             const financialYes = responses.filter(r => {
                 const val = (r[financialCol] || '').toLowerCase();
                 return val === 'yes';
@@ -346,7 +365,6 @@
                 ? `${financialYes} (${((financialYes/responses.length)*100).toFixed(0)}%)`
                 : '0';
 
-            // Academic challenges
             const academicYes = responses.filter(r => {
                 const val = (r[academicCol] || '').toLowerCase();
                 return val === 'yes';
@@ -355,7 +373,6 @@
                 ? `${academicYes} (${((academicYes/responses.length)*100).toFixed(0)}%)`
                 : '0';
 
-            // Chart
             const satCounts = [0, 0, 0, 0, 0];
             satisfactionScores.forEach(score => {
                 if (score >= 1 && score <= 5) {
@@ -385,7 +402,6 @@
                 }
             });
 
-            // Display responses
             const responsesList = document.getElementById('responsesList');
             responsesList.innerHTML = responses.map((r, i) => {
                 let html = `<div class="response-card">
@@ -394,7 +410,7 @@
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">`;
                 
-                headers.forEach((header, idx) => {
+                headers.forEach((header) => {
                     const value = r[header];
                     if (value && value.trim()) {
                         const displayValue = value.length > 100 ? value.substring(0, 100) + '...' : value;
@@ -409,6 +425,8 @@
                 html += '</div></div>';
                 return html;
             }).join('');
+            
+            console.log('Analytics displayed successfully');
         }
     </script>
 </body>

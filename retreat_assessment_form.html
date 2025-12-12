@@ -270,7 +270,9 @@
                 }
 
                 const headers = data.values[0];
-                const rows = data.values.slice(1);
+                const rows = data.values.slice(1).filter(row => 
+                    row && row.length > 0 && row.some(cell => cell && cell.trim())
+                );
                 
                 const responses = rows.map(row => {
                     const obj = {};
@@ -280,7 +282,13 @@
                     return obj;
                 });
 
-                displayAnalytics(responses);
+                console.log('Headers:', headers);
+                console.log('Total responses:', responses.length);
+                if (responses.length > 0) {
+                    console.log('First response:', responses[0]);
+                }
+
+                displayAnalytics(responses, headers);
             } catch (error) {
                 console.error('Error:', error);
                 document.getElementById('loadingMessage').innerHTML = 
@@ -296,25 +304,24 @@
             Object.values(chartInstances).forEach(chart => chart.destroy());
             chartInstances = {};
 
-            // Show total responses
             document.getElementById('totalResponses').textContent = responses.length;
 
-            // Find columns by checking first few characters or common patterns
+            // Find columns dynamically
             const findColumn = (patterns) => {
-                return headers.find(h => {
-                    const lower = h.toLowerCase();
-                    return patterns.some(p => lower.includes(p.toLowerCase()) || lower === p.toLowerCase());
-                });
+                for (let pattern of patterns) {
+                    const col = headers.find(h => h && h.toLowerCase().includes(pattern.toLowerCase()));
+                    if (col) return col;
+                }
+                return null;
             };
 
-            // Map common field names
-            const satisfactionCol = findColumn(['satisfaction', 'rating', 'satisfied']);
-            const financialCol = findColumn(['financial', 'finance', 'money']);
-            const academicCol = findColumn(['academic', 'grades', 'school']);
+            const satisfactionCol = findColumn(['satisfaction', 'rating']);
+            const financialCol = findColumn(['financial']);
+            const academicCol = findColumn(['academic']);
             
-            // Calculate satisfaction stats
+            // Calculate satisfaction
             const satisfactionScores = responses
-                .map(r => parseInt(r[satisfactionCol] || r[headers[4]])) // Column 4 based on your data
+                .map(r => parseInt(r[satisfactionCol]))
                 .filter(s => !isNaN(s) && s >= 1 && s <= 5);
             
             const avgSat = satisfactionScores.length > 0 
@@ -325,7 +332,7 @@
             // Financial challenges
             const financialYes = responses.filter(r => {
                 const val = (r[financialCol] || '').toLowerCase();
-                return val === 'yes' || val.includes('financial');
+                return val === 'yes';
             }).length;
             document.getElementById('financialChallenges').textContent = responses.length > 0 
                 ? `${financialYes} (${((financialYes/responses.length)*100).toFixed(0)}%)`
@@ -334,7 +341,7 @@
             // Academic challenges
             const academicYes = responses.filter(r => {
                 const val = (r[academicCol] || '').toLowerCase();
-                return val === 'yes' || val.includes('academic') || val.includes('grades');
+                return val === 'yes';
             }).length;
             document.getElementById('academicDifficulties').textContent = responses.length > 0
                 ? `${academicYes} (${((academicYes/responses.length)*100).toFixed(0)}%)`
@@ -370,21 +377,18 @@
                 }
             });
 
-            // Display responses with smart formatting
+            // Display responses
             const responsesList = document.getElementById('responsesList');
             responsesList.innerHTML = responses.map((r, i) => {
                 let html = `<div class="response-card">
                     <div style="font-weight: 600; margin-bottom: 15px; font-size: 18px; color: #667eea;">
                         Response #${i + 1}
-                        ${r[headers[0]] ? `<span style="font-size: 12px; color: #999; font-weight: normal;"> - ${new Date(r[headers[0]]).toLocaleString()}</span>` : ''}
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">`;
                 
-                // Display key fields in a grid
                 headers.forEach((header, idx) => {
                     const value = r[header];
-                    if (value && value.trim() && idx > 0) { // Skip timestamp
-                        // Truncate very long text
+                    if (value && value.trim()) {
                         const displayValue = value.length > 100 ? value.substring(0, 100) + '...' : value;
                         html += `
                             <div style="padding: 8px; background: white; border-radius: 6px;">
@@ -398,39 +402,6 @@
                 return html;
             }).join('');
         }
-
-            chartInstances.satisfaction = new Chart(document.getElementById('satisfactionChart'), {
-                type: 'bar',
-                data: {
-                    labels: ['1 - Very Dissatisfied', '2', '3 - Neutral', '4', '5 - Very Satisfied'],
-                    datasets: [{
-                        label: 'Responses',
-                        data: satCounts,
-                        backgroundColor: ['#f44336', '#ff9800', '#ffc107', '#8bc34a', '#4caf50']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
-                    }
-                }
-            });
-
-            const responsesList = document.getElementById('responsesList');
-            responsesList.innerHTML = responses.map((r, i) => `
-                <div class="response-card">
-                    <div style="font-weight: 600; margin-bottom: 10px;">Response #${i + 1}</div>
-                    <div><strong>Position:</strong> ${r.councilPosition || 'Not specified'}</div>
-                    <div><strong>Tenure:</strong> ${r.tenure || 'N/A'}</div>
-                    <div><strong>Satisfaction:</strong> ${r.satisfaction || 'N/A'}/5</div>
-                    ${r.roleDislikes ? `<div style="margin-top: 10px;"><strong>Challenges:</strong> ${r.roleDislikes}</div>` : ''}
-                    ${r.retreatGoals ? `<div style="margin-top: 10px;"><strong>Retreat Goals:</strong> ${r.retreatGoals}</div>` : ''}
-                </div>
-            `).join('');
-        }
     </script>
 </body>
-</html>
 </html>

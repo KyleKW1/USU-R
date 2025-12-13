@@ -89,6 +89,10 @@
             outline: none;
             border-color: #667eea;
         }
+        select.error {
+            border-color: #f44336 !important;
+            background-color: #ffebee;
+        }
         textarea {
             resize: vertical;
             min-height: 100px;
@@ -134,6 +138,16 @@
             margin-bottom: 30px;
             font-size: 13px;
             color: #555;
+        }
+        .warning {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #ff9800;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #e65100;
+            display: none;
         }
         .success-message {
             background: #e8f5e9;
@@ -190,10 +204,15 @@
                     <label for="email">Email (Optional):</label>
                     <input type="email" id="email" name="email">
                 </div>
+                
+                <div class="warning" id="boardWarning">
+                    ⚠️ <strong>Please select your board first!</strong> This is a required field.
+                </div>
+                
                 <div class="form-group">
-                    <label for="councilBoard">Which board do you serve on? *</label>
+                    <label for="councilBoard">Which board do you serve on? * <span style="color: #f44336; font-weight: bold;">(REQUIRED)</span></label>
                     <select id="councilBoard" name="councilBoard" required>
-                        <option value="">Select your board...</option>
+                        <option value=""> SELECT YOUR BOARD HERE </option>
                         <option value="Board of Executives">Board of Executives</option>
                         <option value="Board of Representatives">Board of Representatives</option>
                         <option value="Board of Advisors">Board of Advisors</option>
@@ -545,6 +564,17 @@
         const successMessage = document.getElementById('successMessage');
         const errorMessage = document.getElementById('errorMessage');
         const errorText = document.getElementById('errorText');
+        const boardWarning = document.getElementById('boardWarning');
+        const councilBoardSelect = document.getElementById('councilBoard');
+        
+        // Monitor board selection
+        councilBoardSelect.addEventListener('change', function() {
+            if (this.value) {
+                boardWarning.style.display = 'none';
+                this.classList.remove('error');
+                console.log('Board selected:', this.value);
+            }
+        });
         
         // Show/hide financial details
         const financialRadios = document.querySelectorAll('input[name="financialChallenges"]');
@@ -580,15 +610,34 @@
             });
         });
         
-        // Form submission
+        // Form submission with validation
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            // CRITICAL VALIDATION: Check if board is selected
+            const boardValue = councilBoardSelect.value;
+            console.log('=== FORM SUBMISSION ===');
+            console.log('Board value on submit:', boardValue);
+            
+            if (!boardValue || boardValue === '') {
+                console.error('BOARD NOT SELECTED!');
+                boardWarning.style.display = 'block';
+                councilBoardSelect.classList.add('error');
+                councilBoardSelect.focus();
+                window.scrollTo({
+                    top: councilBoardSelect.offsetTop - 100,
+                    behavior: 'smooth'
+                });
+                alert('⚠️ PLEASE SELECT YOUR BOARD! This is a required field.');
+                return;
+            }
             
             const submitBtn = form.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
             successMessage.style.display = 'none';
             errorMessage.style.display = 'none';
+            boardWarning.style.display = 'none';
             
             const formData = new FormData(form);
             const data = {};
@@ -616,40 +665,13 @@
             // Add timestamp
             data.timestamp = new Date().toISOString();
             
-            console.log('Submitting data:', data);
+            // FINAL CHECK
+            console.log('Final data being sent:');
+            console.log('councilBoard:', data.councilBoard);
+            console.log('councilPosition:', data.councilPosition);
+            console.log('Full data:', JSON.stringify(data, null, 2));
             
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                successMessage.style.display = 'block';
-                window.scrollTo(0, 0);
-                
-                // Reset form after delay
-                setTimeout(() => {
-                    form.reset();
-                    financialDetailsSection.style.display = 'none';
-                    financialStrugglesSection.style.display = 'none';
-                    academicDetailsSection.style.display = 'none';
-                    academicStrugglesSection.style.display = 'none';
-                }, 2000);
-                
-            } catch (error) {
-                console.error('Submission Error:', error);
-                errorText.textContent = error.message;
-                errorMessage.style.display = 'block';
-                window.scrollTo(0, 0);
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit Assessment';
-            }
-        });
+            if (!data
     </script>
 </body>
 </html>

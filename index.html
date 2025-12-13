@@ -155,17 +155,6 @@
             font-weight: 500;
             display: none;
         }
-        .debug-info {
-            background: #fff3e0;
-            padding: 15px;
-            border-radius: 6px;
-            margin-top: 20px;
-            font-family: monospace;
-            font-size: 12px;
-            max-height: 200px;
-            overflow-y: auto;
-            display: none;
-        }
     </style>
 </head>
 <body>
@@ -202,8 +191,8 @@
                     <input type="email" id="email" name="email">
                 </div>
                 <div class="form-group">
-                    <label for="councilboard">Which board do you serve on? *</label>
-                    <select id="councilboard" name="councilboard" required>
+                    <label for="councilBoard">Which board do you serve on? *</label>
+                    <select id="councilBoard" name="councilBoard" required>
                         <option value="">Select your board...</option>
                         <option value="Board of Executives">Board of Executives</option>
                         <option value="Board of Representatives">Board of Representatives</option>
@@ -548,8 +537,6 @@
             
             <button type="submit">Submit Assessment</button>
         </form>
-
-        <div class="debug-info" id="debugInfo"></div>
     </div>
     
     <script>
@@ -558,7 +545,6 @@
         const successMessage = document.getElementById('successMessage');
         const errorMessage = document.getElementById('errorMessage');
         const errorText = document.getElementById('errorText');
-        const debugInfo = document.getElementById('debugInfo');
         
         // Show/hide financial details
         const financialRadios = document.querySelectorAll('input[name="financialChallenges"]');
@@ -594,7 +580,7 @@
             });
         });
         
-        // Form submission with better debugging
+        // Form submission
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -603,7 +589,6 @@
             submitBtn.textContent = 'Submitting...';
             successMessage.style.display = 'none';
             errorMessage.style.display = 'none';
-            debugInfo.style.display = 'none';
             
             const formData = new FormData(form);
             const data = {};
@@ -631,23 +616,7 @@
             // Add timestamp
             data.timestamp = new Date().toISOString();
             
-            // Debug logging
-            console.log('=== FORM SUBMISSION DEBUG ===');
-            console.log('Council Board Value:', data.councilboard);
-            console.log('All Data:', data);
-            console.log('Data as JSON:', JSON.stringify(data, null, 2));
-            
-            // Show debug info on page
-            debugInfo.innerHTML = `
-                <strong>Debug Information:</strong><br>
-                Council Board: ${data.councilboard || 'MISSING!'}<br>
-                Tenure: ${data.tenure}<br>
-                Satisfaction: ${data.satisfaction}<br>
-                <br>
-                <strong>All Fields:</strong><br>
-                ${JSON.stringify(data, null, 2)}
-            `;
-            debugInfo.style.display = 'block';
+            console.log('Submitting data:', data);
             
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
@@ -658,10 +627,6 @@
                     },
                     body: JSON.stringify(data)
                 });
-                
-                // Note: With no-cors mode, we can't read the response
-                // But we can assume success if no error was thrown
-                console.log('Request sent successfully');
                 
                 successMessage.style.display = 'block';
                 window.scrollTo(0, 0);
@@ -687,3 +652,4 @@
         });
     </script>
 </body>
+</html>

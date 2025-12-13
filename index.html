@@ -610,27 +610,9 @@
             });
         });
         
-        // Form submission with validation
+        // Form submission
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
-            
-            // CRITICAL VALIDATION: Check if board is selected
-            const boardValue = councilBoardSelect.value;
-            console.log('=== FORM SUBMISSION ===');
-            console.log('Board value on submit:', boardValue);
-            
-            if (!boardValue || boardValue === '') {
-                console.error('BOARD NOT SELECTED!');
-                boardWarning.style.display = 'block';
-                councilBoardSelect.classList.add('error');
-                councilBoardSelect.focus();
-                window.scrollTo({
-                    top: councilBoardSelect.offsetTop - 100,
-                    behavior: 'smooth'
-                });
-                alert('⚠️ PLEASE SELECT YOUR BOARD! This is a required field.');
-                return;
-            }
             
             const submitBtn = form.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
@@ -665,18 +647,12 @@
             // Add timestamp
             data.timestamp = new Date().toISOString();
             
-            // FINAL CHECK
-            console.log('Final data being sent:');
-            console.log('councilBoard:', data.councilBoard);
-            console.log('councilPosition:', data.councilPosition);
+            // Debug logging
+            console.log('=== FORM SUBMISSION DEBUG ===');
+            console.log('councilBoard:', data.councilBoard || 'EMPTY');
+            console.log('councilPosition:', data.councilPosition || 'EMPTY');
+            console.log('All data keys:', Object.keys(data));
             console.log('Full data:', JSON.stringify(data, null, 2));
-            
-            if (!data.councilBoard || data.councilBoard === '') {
-                alert('ERROR: Board not captured! Please try again.');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit Assessment';
-                return;
-            }
             
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
